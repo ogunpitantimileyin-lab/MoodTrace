@@ -1,0 +1,30 @@
+{
+  "name": "MoodTrace",
+  "short_name": "MoodTrace",
+  "description": "Track your mood, understand your patterns, grow through reflection.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0F0A1E",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "moodtrace-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Entry",
+      "url": "/add-entry.html",
+      "description": "Log a new mood entry"
+    },
+    {
+      "name": "View History",
+      "url": "/history.html",
+      "description": "See all past entries"
+    }
+  ]
+}

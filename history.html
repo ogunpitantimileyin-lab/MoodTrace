@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – History</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="history">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- Edit Modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:500px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Edit Entry</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <input type="hidden" id="editEntryId">
+    <div class="form-section">
+      <label class="form-label">Mood</label>
+      <div class="emoji-grid">
+        <div class="emoji-option edit-emoji-option" data-emoji="😄" onclick="selectEditEmoji(this)">😄<div class="emoji-label">Great</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😊" onclick="selectEditEmoji(this)">😊<div class="emoji-label">Good</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😐" onclick="selectEditEmoji(this)">😐<div class="emoji-label">Meh</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😟" onclick="selectEditEmoji(this)">😟<div class="emoji-label">Low</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😤" onclick="selectEditEmoji(this)">😤<div class="emoji-label">Angry</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😰" onclick="selectEditEmoji(this)">😰<div class="emoji-label">Anxious</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😭" onclick="selectEditEmoji(this)">😭<div class="emoji-label">Awful</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="🤩" onclick="selectEditEmoji(this)">🤩<div class="emoji-label">Elated</div></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Intensity</label>
+      <div class="slider-row">
+        <span>😶</span>
+        <input type="range" id="editSlider" class="slider" min="1" max="10" value="7" oninput="document.getElementById('editSliderVal').textContent=this.value">
+        <span>🤯</span>
+        <div class="slider-val" id="editSliderVal">7</div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Category</label>
+      <div class="category-chips" id="editCategoryChips"></div>
+      <button type="button" class="btn btn-ghost" style="margin-top:0.75rem;font-size:0.8rem;padding:0.45rem 0.8rem" onclick="openCustomCategoryEditor()">＋ Add custom category</button>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" id="editDatetime" class="form-input">
+    </div>
+    <div class="form-section">
+      <label class="form-label">Description</label>
+      <textarea id="editDescription" class="form-textarea" style="min-height:80px"></textarea>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveEdit()" style="flex:1">💾 Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html" class="active"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">📋 History</div>
+    </div>
+    <h1 class="page-title">All <span class="accent-orange">Entries</span></h1>
+    <p class="page-subtitle">Browse, search, filter, and reflect on your mood journey.</p>
+  </div>
+
+  <!-- Search -->
+  <div style="margin-bottom:1rem;position:relative">
+    <input id="searchInput" type="text" class="form-input" placeholder="🔍 Search entries by keyword…" style="width:100%;padding-left:1.25rem">
+  </div>
+
+  <!-- Filters -->
+  <div class="history-filters">
+    <div class="filter-chip active" data-filter="all">All</div>
+    <div class="filter-chip" data-filter="work">💼 Work</div>
+    <div class="filter-chip" data-filter="money">💰 Money</div>
+    <div class="filter-chip" data-filter="rel">❤️ Relationships</div>
+    <div class="filter-chip" data-filter="health">🏃 Health</div>
+    <div class="filter-chip" data-filter="high">😄 High Mood</div>
+    <div class="filter-chip" data-filter="low">😟 Low Mood</div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <p id="entryCount" style="font-size:0.82rem;color:var(--text-muted)"></p>
+    <button class="btn btn-ghost" style="font-size:0.8rem;padding:0.4rem 0.9rem" onclick="exportCSV()">📤 Export CSV</button>
+  </div>
+
+  <div id="historyList"></div>
+</div>
+
+<div id="customCategoryModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Add Category</h3>
+      <button onclick="closeCustomCategoryModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <label class="form-label" style="margin-bottom:0.35rem">Category name</label>
+    <input id="customCatLabel" class="form-input" placeholder="e.g. Family, Gym, Travel" style="margin-bottom:0.75rem">
+    <label class="form-label" style="margin-bottom:0.35rem">Emoji</label>
+    <input id="customCatEmojiInput" class="form-input" placeholder="Type any emoji, e.g. 🧘‍♀️ or ✨" style="margin-bottom:1rem;font-size:1.1rem">
+    <div id="customCatEmoji" style="display:none">📌</div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveCustomCategory()" style="flex:1">Save</button>
+      <button class="btn btn-ghost" onclick="closeCustomCategoryModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-history.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Insights</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="insights">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="insights.html" class="active"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">💡 Insights</div>
+    </div>
+    <h1 class="page-title">What your data <span class="accent-teal">tells you</span></h1>
+    <p class="page-subtitle">Patterns, correlations and discoveries from your mood history.</p>
+  </div>
+
+  <!-- Data Insights -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Your Insights</div>
+    <div id="insightsSection"></div>
+  </div>
+
+  <!-- Goals -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div id="goalsSection"></div>
+  </div>
+
+  <!-- Mood Triggers Table -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Mood Triggers Analysis</div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">How each category affects your mood compared to your overall average.</p>
+    <div id="triggersSection"></div>
+  </div>
+
+  <!-- Share Card -->
+  <div class="card section-gap" style="padding:1.75rem;text-align:center">
+    <div style="font-size:2rem;margin-bottom:0.75rem">🖼️</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:0.4rem">Share Your Month</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.25rem;max-width:360px;margin-left:auto;margin-right:auto">Generate a beautiful summary card of this month's mood data — perfect for saving or sharing.</p>
+    <button class="btn btn-primary" onclick="generateShareCard()">🖼️ Generate Share Card</button>
+  </div>
+
+  <!-- App Rating -->
+  <div id="appRatingWidget" style="display:none" class="card" style="padding:1.75rem;text-align:center">
+    <div style="padding:1.75rem;text-align:center">
+      <div style="font-size:1.5rem;margin-bottom:0.5rem">How are you finding MoodTrace?</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">Your rating helps improve the app</div>
+      <div id="ratingStars" style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:0.75rem">
+        <span class="rating-star" data-val="1" style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</span>
+        <span class="rating-star" data-val="2" style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</span>
+        <span class="rating-star" data-val="3" style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</span>
+        <span class="rating-star" data-val="4" style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</span>
+        <span class="rating-star" data-val="5" style="font-size:2rem;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</span>
+      </div>
+      <div id="ratingThanks" style="display:none;color:var(--teal-light);font-weight:600">Thank you! 🙏</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-insights.js"></script>
+</body>
+</html>

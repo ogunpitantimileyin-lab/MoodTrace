@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace â€“ Shared Data</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .share-stat { text-align: center; padding: 1.5rem; background: var(--surface); border-radius: 12px; }
+    .share-stat-value { font-size: 2rem; font-weight: 700; color: var(--teal); margin: 0.5rem 0; }
+    .share-stat-label { font-size: 0.85rem; color: var(--text-muted); }
+  </style>
+</head>
+<body data-page="share">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<div class="container" style="max-width:800px;margin:0 auto;padding:3rem 1rem">
+
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-size:3rem;margin-bottom:1rem">ðŸ“Š</div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700">Shared Mood Data</h1>
+    <p style="color:var(--text-muted);margin-top:0.5rem">This link was shared privately and will expire in 30 days.</p>
+  </div>
+
+  <div id="shareContent" style="display:none">
+    <!-- Stats Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem">
+      <div class="share-stat">
+        <div class="share-stat-label">Total Entries</div>
+        <div class="share-stat-value" id="shareEntryCount">â€”</div>
+      </div>
+      <div class="share-stat">
+        <div class="share-stat-label">Average Mood</div>
+        <div class="share-stat-value" id="shareAvgMood">â€”</div>
+      </div>
+      <div class="share-stat">
+        <div class="share-stat-label">Highest</div>
+        <div class="share-stat-value" id="shareHighest">â€”</div>
+      </div>
+      <div class="share-stat">
+        <div class="share-stat-label">Lowest</div>
+        <div class="share-stat-value" id="shareLowest">â€”</div>
+      </div>
+    </div>
+
+    <!-- Entries -->
+    <div id="shareEntries"></div>
+
+    <!-- Privacy Notice -->
+    <div style="text-align:center;margin-top:3rem;padding:1.5rem;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+      <div style="font-size:0.85rem;color:var(--text-muted)">
+        <strong>Privacy:</strong> This data is shared directly with you and is not stored on any server. The link expires automatically.
+      </div>
+    </div>
+  </div>
+
+  <div id="shareError" style="display:none;text-align:center;padding:2rem">
+    <div style="font-size:2rem;margin-bottom:1rem">ðŸ”’</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.3rem;margin-bottom:0.5rem">Link Expired or Invalid</h2>
+    <p style="color:var(--text-muted)">This share link is no longer valid or has expired.</p>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-dashboard.js"></script>
+<script>
+  function loadSharedData() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    
+    if (!token) {
+      document.getElementById('shareError').style.display = 'block';
+      return;
+    }
+    
+    // This would normally fetch from a server, but since this is client-side only,
+    // we'll display a message about how it would work
+    const data = localStorage.getItem('moodtrace_shares');
+    const shares = JSON.parse(data || '{}');
+    const share = shares[token];
+    
+    if (!share || !share.enabled || new Date(share.expires) < new Date()) {
+      document.getElementById('shareError').style.display = 'block';
+      return;
+    }
+    
+    // In a real app, the shared data would be sent from the sharer's device via encrypted link
+    // This is a placeholder showing how the data would be displayed
+    document.getElementById('shareContent').style.display = 'block';
+    document.getElementById('shareEntryCount').textContent = '0';
+    document.getElementById('shareAvgMood').textContent = 'â€”';
+    document.getElementById('shareHighest').textContent = 'â€”';
+    document.getElementById('shareLowest').textContent = 'â€”';
+    document.getElementById('shareEntries').innerHTML = '<p style="color:var(--text-muted);text-align:center">Share functionality requires a backend service to transmit encrypted data.</p>';
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    loadSharedData();
+  });
+</script>
+</body>
+</html>
+

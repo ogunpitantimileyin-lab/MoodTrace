@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Add Entry</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="add-entry">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- Success toast -->
+<div id="toast" style="display:none;position:fixed;top:80px;right:2rem;z-index:999;background:linear-gradient(135deg,var(--teal),#0F766E);color:white;padding:0.85rem 1.5rem;border-radius:12px;font-weight:600;font-size:0.9rem;box-shadow:0 8px 30px rgba(13,148,136,0.4)">
+  ✅ Entry saved!
+</div>
+
+<!-- Coping suggestion toast -->
+<div id="copingSuggestionToast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:999;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:1rem 1.5rem;border-radius:12px;font-size:0.88rem;max-width:400px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.3)">
+  <span id="copingSuggestionText"></span>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html" class="active"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">✏️ New Entry</div>
+    </div>
+    <h1 class="page-title">How are you <span class="accent-teal">feeling</span>?</h1>
+    <p class="page-subtitle">Be honest. This is your private space. You can log multiple times a day.</p>
+  </div>
+
+  <div class="card form-card">
+
+    <div class="form-section">
+      <label class="form-label">Choose a mood</label>
+      <div class="emoji-grid">
+        <div class="emoji-option selected" data-emoji="😄" onclick="selectEmoji(this)">😄<div class="emoji-label">Great</div></div>
+        <div class="emoji-option" data-emoji="😊" onclick="selectEmoji(this)">😊<div class="emoji-label">Good</div></div>
+        <div class="emoji-option" data-emoji="😐" onclick="selectEmoji(this)">😐<div class="emoji-label">Meh</div></div>
+        <div class="emoji-option" data-emoji="😟" onclick="selectEmoji(this)">😟<div class="emoji-label">Low</div></div>
+        <div class="emoji-option" data-emoji="😤" onclick="selectEmoji(this)">😤<div class="emoji-label">Angry</div></div>
+        <div class="emoji-option" data-emoji="😰" onclick="selectEmoji(this)">😰<div class="emoji-label">Anxious</div></div>
+        <div class="emoji-option" data-emoji="😭" onclick="selectEmoji(this)">😭<div class="emoji-label">Awful</div></div>
+        <div class="emoji-option" data-emoji="🤩" onclick="selectEmoji(this)">🤩<div class="emoji-label">Elated</div></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Mood intensity</label>
+      <div class="slider-row">
+        <span style="font-size:1rem">😶</span>
+        <input type="range" id="slider" class="slider" min="1" max="10" value="7" oninput="document.getElementById('sliderVal').textContent=this.value">
+        <span style="font-size:1rem">🤯</span>
+        <div class="slider-val" id="sliderVal">7</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Category</label>
+      <div class="category-chips" id="addEntryCategoryChips"></div>
+      <button type="button" class="btn btn-ghost" style="margin-top:0.75rem" onclick="openCustomCategoryEditor()">＋ Add custom category</button>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" id="entryDatetime" class="form-input">
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">What's on your mind?</label>
+      <textarea id="description" class="form-textarea" placeholder="Describe what happened, how you're feeling, or anything else…"></textarea>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Attach Media</label>
+      <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <label class="btn btn-ghost" style="cursor:pointer;flex:1;display:flex;justify-content:center;align-items:center;gap:0.5rem">
+          📷 Add Photo
+          <input type="file" id="photoUpload" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+        </label>
+        <button type="button" id="recordAudioBtn" class="btn btn-ghost" style="flex:1;display:flex;justify-content:center;align-items:center;gap:0.5rem" onclick="toggleAudioRecording()">
+          🎤 Record Voice
+        </button>
+      </div>
+      <div id="mediaPreview" style="margin-top:1rem;display:none;flex-direction:column;gap:1rem">
+        <div id="photoPreviewContainer" style="display:none;position:relative;width:fit-content">
+          <img id="photoPreview" style="max-width:100%;border-radius:12px;border:1px solid var(--border)">
+          <button type="button" onclick="clearPhoto()" style="position:absolute;top:-10px;right:-10px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;cursor:pointer;color:var(--pink-light)">✕</button>
+        </div>
+        <div id="audioPreviewContainer" style="display:none;align-items:center;gap:1rem;background:var(--bg3);padding:0.75rem;border-radius:12px;border:1px solid var(--border)">
+          <audio id="audioPreview" controls style="flex:1;height:36px"></audio>
+          <button type="button" onclick="clearAudio()" style="background:none;border:none;color:var(--pink-light);cursor:pointer;font-size:1.2rem">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:0.5rem 0 2rem"></div>
+    <div style="margin-bottom:1.25rem">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:0.25rem">What did you do about it? <span style="font-size:0.8rem;font-weight:400;color:var(--text-muted)">(optional)</span></div>
+      <div style="font-size:0.82rem;color:var(--text-muted)">Tracking coping actions helps you discover what actually works for you.</div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Coping actions</label>
+      <div class="coping-chips" id="copingChips">
+        <div class="coping-chip" data-action="meditated"  onclick="toggleCoping(this)">🧘 Meditated</div>
+        <div class="coping-chip" data-action="exercised"  onclick="toggleCoping(this)">🏃 Exercised</div>
+        <div class="coping-chip" data-action="talked"     onclick="toggleCoping(this)">💬 Talked to someone</div>
+        <div class="coping-chip" data-action="journalled" onclick="toggleCoping(this)">📖 Journalled</div>
+        <div class="coping-chip" data-action="rested"     onclick="toggleCoping(this)">😴 Rested</div>
+        <div class="coping-chip" data-action="music"      onclick="toggleCoping(this)">🎵 Listened to music</div>
+        <div class="coping-chip" data-action="walked"     onclick="toggleCoping(this)">🚶 Went for a walk</div>
+        <div class="coping-chip" data-action="breathed"   onclick="toggleCoping(this)">🌬️ Breathing exercises</div>
+        <div class="coping-chip" data-action="ate"        onclick="toggleCoping(this)">🍽️ Ate well</div>
+        <div class="coping-chip" data-action="nothing"    onclick="toggleCoping(this)">🤷 Did nothing</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Any extra details?</label>
+      <textarea id="copingNotes" class="form-textarea" style="min-height:75px" placeholder="e.g. Went for a 20 minute walk, felt better afterwards…"></textarea>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Did it help?</label>
+      <div class="helped-options" id="helpedOptions">
+        <div class="helped-option" data-value="1" onclick="selectHelped(this)">😞<div class="helped-label">Not at all</div></div>
+        <div class="helped-option" data-value="2" onclick="selectHelped(this)">😕<div class="helped-label">A little</div></div>
+        <div class="helped-option" data-value="3" onclick="selectHelped(this)">😐<div class="helped-label">Somewhat</div></div>
+        <div class="helped-option" data-value="4" onclick="selectHelped(this)">🙂<div class="helped-label">Quite a bit</div></div>
+        <div class="helped-option" data-value="5" onclick="selectHelped(this)">😄<div class="helped-label">A lot!</div></div>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button class="btn btn-primary" onclick="handleSubmit()">💾 Save Entry</button>
+      <button class="btn btn-ghost" onclick="handleClear()">Clear</button>
+      <span class="submit-note">Stored privately on this device.</span>
+    </div>
+
+  </div>
+</div>
+
+<div id="customCategoryModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Add Category</h3>
+      <button onclick="closeCustomCategoryModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <label class="form-label" style="margin-bottom:0.35rem">Category name</label>
+    <input id="customCatLabel" class="form-input" placeholder="e.g. Family, Gym, Travel" style="margin-bottom:0.75rem">
+    <label class="form-label" style="margin-bottom:0.35rem">Emoji</label>
+    <input id="customCatEmojiInput" class="form-input" placeholder="Type any emoji, e.g. 🧘‍♀️ or ✨" style="margin-bottom:1rem;font-size:1.1rem">
+    <div id="customCatEmoji" style="display:none">📌</div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveCustomCategory()" style="flex:1">Save</button>
+      <button class="btn btn-ghost" onclick="closeCustomCategoryModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-add-entry.js"></script>
+</body>
+</html>

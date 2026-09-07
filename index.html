@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Dashboard</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7C3AED">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="dashboard">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- ─── ONBOARDING MODAL ─── -->
+<div id="onboardingModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:2.5rem;max-width:440px;width:100%;text-align:center;margin:auto">
+
+    <div id="onboardStep1" class="onboarding-step">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem">👋</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Welcome to MoodTrace</h2>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Your private space to track how you feel, understand your patterns, and grow through reflection.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="nextOnboardingStep(2)">Get started →</button>
+    </div>
+
+    <div id="onboardStep2" class="onboarding-step" style="display:none">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem">✏️</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Log your mood anytime</h2>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Pick an emoji, rate your intensity, choose a category, and write what's on your mind. You can log multiple times a day.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="nextOnboardingStep(3)">Next →</button>
+    </div>
+
+    <div id="onboardStep3" class="onboarding-step" style="display:none">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem">📊</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Track what works for you</h2>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Log coping actions when you feel low. Over time, MoodTrace learns which ones actually help you most.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="nextOnboardingStep(4)">Next →</button>
+    </div>
+
+    <div id="onboardStep4" class="onboarding-step" style="display:none">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem">✨</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Get a daily AI message</h2>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Every day, your dashboard shows a personalised message based on your mood entries — warm, honest, and just for you.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="finishOnboarding()">Let's go! 🚀</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── EDIT MODAL ─── -->
+<div id="editModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:500px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Edit Entry</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <input type="hidden" id="editEntryId">
+    <div class="form-section">
+      <label class="form-label">Mood</label>
+      <div class="emoji-grid">
+        <div class="emoji-option edit-emoji-option" data-emoji="😄" onclick="selectEditEmoji(this)">😄<div class="emoji-label">Great</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😊" onclick="selectEditEmoji(this)">😊<div class="emoji-label">Good</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😐" onclick="selectEditEmoji(this)">😐<div class="emoji-label">Meh</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😟" onclick="selectEditEmoji(this)">😟<div class="emoji-label">Low</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😤" onclick="selectEditEmoji(this)">😤<div class="emoji-label">Angry</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😰" onclick="selectEditEmoji(this)">😰<div class="emoji-label">Anxious</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="😭" onclick="selectEditEmoji(this)">😭<div class="emoji-label">Awful</div></div>
+        <div class="emoji-option edit-emoji-option" data-emoji="🤩" onclick="selectEditEmoji(this)">🤩<div class="emoji-label">Elated</div></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Intensity</label>
+      <div class="slider-row">
+        <span>😶</span>
+        <input type="range" id="editSlider" class="slider" min="1" max="10" value="7" oninput="document.getElementById('editSliderVal').textContent=this.value">
+        <span>🤯</span>
+        <div class="slider-val" id="editSliderVal">7</div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Category</label>
+      <div class="category-chips">
+        <div class="chip edit-chip" data-cat="work" onclick="selectEditChip(this,'work')">💼 Work</div>
+        <div class="chip edit-chip" data-cat="money" onclick="selectEditChip(this,'money')">💰 Money</div>
+        <div class="chip edit-chip" data-cat="rel" onclick="selectEditChip(this,'rel')">❤️ Relationships</div>
+        <div class="chip edit-chip" data-cat="health" onclick="selectEditChip(this,'health')">🏃 Health</div>
+        <div class="chip edit-chip" data-cat="school" onclick="selectEditChip(this,'school')">📚 School</div>
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" id="editDatetime" class="form-input">
+    </div>
+    <div class="form-section">
+      <label class="form-label">Description</label>
+      <textarea id="editDescription" class="form-textarea" style="min-height:80px"></textarea>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveEdit()" style="flex:1">💾 Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+      <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="settings.html"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<!-- ─── BOTTOM NAV (mobile only) ─── -->
+<nav class="bottom-nav">
+  <ul>
+    <li><a href="index.html" class="active"><span class="bn-icon">🏠</span>Home</a></li>
+    <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
+    <li><a href="history.html"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
+    <li><a href="monthly.html"><span class="bn-icon">📅</span>Summary</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-tag">📍 Today — <span id="todayLabel"></span></div>
+    <h1 class="page-title">Your <span class="accent-purple">Mood</span> at a Glance</h1>
+    <p class="page-subtitle">Here's a snapshot of how you've been feeling lately.</p>
+  </div>
+
+  <!-- Welcome banner -->
+  <div class="welcome-banner">
+    <div class="welcome-emoji">👋</div>
+    <div class="welcome-text">
+      <h2 id="welcomeMsg">Good to see you!</h2>
+      <p id="welcomeSub">Start logging your mood to see your insights here.</p>
+    </div>
+    <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem">
+      <a href="add-entry.html" class="btn btn-primary">+ Log Mood</a>
+      <span id="todayLogCount" style="font-size:0.75rem;color:var(--text-muted)"></span>
+    </div>
+  </div>
+
+  <!-- AI Message Card -->
+  <div id="aiMessageCard" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(13,148,136,0.08));border:1px solid rgba(124,58,237,0.25);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem"></div>
+
+  <!-- Stat Cards Row 1 -->
+  <div class="grid-3 section-gap">
+    <div class="card stat-card purple">
+      <div class="stat-icon purple">😊</div>
+      <div class="stat-label">Average Mood</div>
+      <div class="stat-value purple" id="statAvgMood">—<span style="font-size:1rem;opacity:0.6">/10</span></div>
+      <div class="stat-sub" id="statAvgSub">No entries yet</div>
+    </div>
+    <div class="card stat-card teal">
+      <div class="stat-icon teal">📅</div>
+      <div class="stat-label">Entries This Month</div>
+      <div class="stat-value teal" id="statEntryCount">0</div>
+      <div class="stat-sub" id="statStreakSub">No streak yet</div>
+    </div>
+    <div class="card stat-card orange">
+      <div class="stat-icon orange">⚠️</div>
+      <div class="stat-label">Worst Day</div>
+      <div class="stat-value orange" id="statWorstDay">—</div>
+      <div class="stat-sub" id="statWorstSub">No entries yet</div>
+    </div>
+  </div>
+
+  <!-- Stat Cards Row 2 -->
+  <div class="grid-3 section-gap">
+    <div class="card stat-card pink">
+      <div class="stat-icon pink">🔁</div>
+      <div class="stat-label">Top Issue</div>
+      <div class="stat-value pink" id="statTopIssue" style="font-size:1.4rem">—</div>
+      <div class="stat-sub" id="statTopIssueSub">No entries yet</div>
+    </div>
+    <div class="card mood-ring-card">
+      <div class="mood-ring"></div>
+      <div class="mood-ring-label">Overall Wellbeing</div>
+      <div class="mood-ring-sub" id="statWellbeing">Log entries to see</div>
+    </div>
+    <div class="card stat-card teal">
+      <div class="stat-icon teal">🏆</div>
+      <div class="stat-label">Best Day</div>
+      <div class="stat-value teal" id="statBestDay" style="font-size:1.4rem">—</div>
+      <div class="stat-sub" id="statBestSub">No entries yet</div>
+    </div>
+  </div>
+
+  <!-- Recent Entries -->
+  <div class="section-gap">
+    <div class="section-title">Recent Entries</div>
+    <div id="recentEntries">
+      <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+        <div style="font-size:2rem;margin-bottom:0.5rem">📭</div>
+        <p>No entries yet. <a href="add-entry.html" style="color:var(--purple-light)">Add your first one!</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div id="goalsSection"></div>
+  </div>
+
+  <div class="quick-actions">
+    <a href="add-entry.html"  class="btn btn-primary">✏️ Add Entry</a>
+    <a href="history.html"    class="btn btn-teal">📋 History</a>
+    <a href="analytics.html"  class="btn btn-orange">📊 Analytics</a>
+    <a href="insights.html"   class="btn btn-ghost">💡 Insights</a>
+    <a href="monthly.html"    class="btn btn-ghost">📅 Summary</a>
+    <a href="settings.html"   class="btn btn-ghost">⚙️ Settings</a>
+    <button class="btn btn-ghost" onclick="generateShareCard()">🖼️ Share Card</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">📤 Export</button>
+  </div>
+
+  <!-- Reminder toggle -->
+  <div style="margin-top:2rem;padding:1.25rem 1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;gap:1rem">
+    <span style="font-size:1.3rem">🔔</span>
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:0.9rem">Daily Reminder</div>
+      <div style="font-size:0.78rem;color:var(--text-muted)">Get a notification at 8:00 PM if you haven't logged today</div>
+    </div>
+    <label style="position:relative;display:inline-block;width:44px;height:24px">
+      <input type="checkbox" id="reminderToggle" style="opacity:0;width:0;height:0">
+      <span style="position:absolute;cursor:pointer;inset:0;background:var(--surface2);border-radius:24px;transition:0.3s" id="reminderSlider"></span>
+    </label>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="app.js"></script>
+<script src="init-dashboard.js"></script>
+<script>
+  // Style the reminder toggle
+  const toggle = document.getElementById('reminderToggle');
+  const sliderEl = document.getElementById('reminderSlider');
+  function updateToggleStyle() {
+    sliderEl.style.background = toggle.checked ? 'var(--purple)' : 'var(--surface2)';
+  }
+  toggle.addEventListener('change', updateToggleStyle);
+  updateToggleStyle();
+</script>
+</body>
+</html>

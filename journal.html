@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace â€“ Journal</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="journal">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">ðŸ </span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">âœï¸</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">ðŸ“‹</span><span class="label">History</span></a></li>
+      <li><a href="journal.html" class="active"><span class="nav-icon">ðŸ“”</span><span class="label">Journal</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">ðŸ“Š</span><span class="label">Analytics</span></a></li>
+      <li><a href="settings.html"><span class="nav-icon">âš™ï¸</span><span class="label">Settings</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">â˜€ï¸</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">📓 Journal</div>
+    </div>
+    <h1 class="page-title">Deeper <span class="accent-teal">Reflections</span></h1>
+    <p class="page-subtitle">Write longer journal entries separate from your mood logs. This is your space for deeper thoughts.</p>
+  </div>
+
+  <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-teal" onclick="openJournalEditor()" aria-label="Write new journal entry">âœï¸ Write New Entry</button>
+    <button class="btn btn-ghost" onclick="exportJournalJSON()" aria-label="Export journal as JSON">ðŸ“¤ Export</button>
+  </div>
+
+  <!-- Journal Entries -->
+  <div id="journalList"></div>
+
+</div>
+
+<!-- Journal Editor Modal -->
+<div id="journalEditorModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">New Journal Entry</h3>
+      <button onclick="closeJournalEditor()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem" aria-label="Close editor">âœ•</button>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label" for="journalTitle">Title</label>
+      <input type="text" id="journalTitle" class="form-input" placeholder="Give your entry a titleâ€¦">
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label" for="journalDatetime">Date & Time</label>
+      <input type="datetime-local" id="journalDatetime" class="form-input">
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label" for="journalBody">Your thoughts</label>
+      <textarea id="journalBody" class="form-textarea" placeholder="Write freely. No mood rating needed here â€” just your thoughts and feelings." style="min-height:200px"></textarea>
+    </div>
+    
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="saveJournalEntry()" style="flex:1">ðŸ’¾ Save Entry</button>
+      <button class="btn btn-ghost" onclick="closeJournalEditor()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-dashboard.js"></script>
+<script>
+  function openJournalEditor() {
+    const modal = document.getElementById('journalEditorModal');
+    if (!modal) return;
+    document.getElementById('journalTitle').value = '';
+    document.getElementById('journalBody').value = '';
+    document.getElementById('journalDatetime').value = nowFormatted();
+    modal.style.display = 'flex';
+  }
+
+  function closeJournalEditor() {
+    const modal = document.getElementById('journalEditorModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function saveJournalEntry() {
+    const title = document.getElementById('journalTitle')?.value.trim();
+    const body = document.getElementById('journalBody')?.value.trim();
+    const datetime = document.getElementById('journalDatetime')?.value;
+    
+    if (!title) { alert('Please add a title.'); return; }
+    if (!body) { alert('Please write something.'); return; }
+    if (!datetime) { alert('Please set a date and time.'); return; }
+    
+    addJournalEntry({ title, body, datetime });
+    renderJournal();
+    closeJournalEditor();
+    showToast();
+  }
+
+  function exportJournalJSON() {
+    const entries = getJournalEntries();
+    if (!entries.length) { alert('No journal entries to export.'); return; }
+    const json = JSON.stringify(entries, null, 2);
+    downloadFile('moodtrace-journal.json', json, 'application/json');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initAccessibility();
+    renderJournal();
+  });
+</script>
+</body>
+</html>
+

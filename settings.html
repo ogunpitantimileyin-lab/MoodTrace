@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Settings</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="settings">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="settings.html" class="active"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">⚙️ Settings</div>
+    </div>
+    <h1 class="page-title">App <span class="accent-purple">Settings</span></h1>
+    <p class="page-subtitle">Customise your MoodTrace experience.</p>
+  </div>
+
+  
+  <!-- Account & Cloud Sync (temporarily disabled) -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Account &amp; Cloud Sync</div>
+    <div id="accountSection">
+      <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem">Cloud sync and login features are temporarily disabled while we refine the authentication flow.</p>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-ghost" onclick="alert('Cloud sync is currently disabled. We will re-enable this later.')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Check-ins -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div id="checkInManager"></div>
+  </div>
+
+  <!-- Custom Categories -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Custom Categories</div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">Manage your own categories from here. They appear in the Add Entry and Edit forms.</p>
+    <div id="customCategoryList"></div>
+    <button class="btn btn-teal" onclick="openCustomCategoryEditor()" style="margin-top:0.75rem">＋ Add Custom Category</button>
+  </div>
+
+  <!-- Custom Coping Actions -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Custom Coping Actions</div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">Your custom actions appear on the Add Entry form alongside the defaults.</p>
+    <div id="customCopingList"></div>
+    <button class="btn btn-teal" onclick="openCustomCopingEditor()" style="margin-top:0.75rem">＋ Add Custom Action</button>
+  </div>
+
+  <!-- Features -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Features</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.75rem;flex-wrap:wrap;gap:0.75rem">
+      <div>
+        <div style="font-weight:500;font-size:0.9rem">🔔 Push Notifications</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Get reminders to log your mood (requires sign-in)</div>
+        <div id="pushStatusText" style="font-size:0.75rem;margin-top:0.3rem;color:var(--teal)"></div>
+      </div>
+      <button id="enablePushBtn" class="btn btn-ghost" onclick="enablePushNotifications()" style="white-space:nowrap">Enable</button>
+    </div>
+  </div>
+
+  <!-- Theme -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Appearance</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.75rem">
+      <div>
+        <div style="font-weight:500;font-size:0.9rem">Dark / Light Mode</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Switch between dark and light theme</div>
+      </div>
+      <button class="btn btn-ghost" onclick="toggleTheme()" id="themeBtn">Toggle Theme</button>
+    </div>
+  </div>
+
+  <!-- Data Management -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Data</div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-top:0.75rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Export All Data</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Download all entries as a CSV file</div>
+        </div>
+        <button class="btn btn-teal" onclick="exportCSV()">📤 Export CSV</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:0.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Export as JSON</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Full backup including all entry details</div>
+        </div>
+        <button class="btn btn-ghost" onclick="exportJSON()">💾 Export JSON</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:0.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Import JSON Backup</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Restore entries from a JSON backup file</div>
+        </div>
+        <label class="btn btn-ghost" style="cursor:pointer">
+          📂 Import JSON
+          <input type="file" accept=".json" onchange="importJSON(this)" style="display:none">
+        </label>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:0.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem;color:var(--pink-light)">Clear All Data</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Permanently delete all entries — cannot be undone</div>
+        </div>
+        <button class="btn btn-ghost" style="border-color:var(--pink-light);color:var(--pink-light)" onclick="clearAllData()">🗑 Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Onboarding -->
+  <div class="card" style="padding:1.75rem">
+    <div class="section-title">Help</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.75rem;flex-wrap:wrap;gap:0.75rem">
+      <div>
+        <div style="font-weight:500;font-size:0.9rem">Replay Onboarding</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">See the welcome walkthrough again</div>
+      </div>
+      <button class="btn btn-ghost" onclick="localStorage.removeItem('moodtrace_onboarded'); window.location.href='index.html'">👋 Replay</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-settings.js"></script>
+<script>
+  // ── Auth ────────────────────────────────────────────────
+  function updateAuthUI() {
+    const outState = document.getElementById('loggedOutState');
+    const inState  = document.getElementById('loggedInState');
+    if (!outState || !inState) return;
+    if (window.currentUser) {
+      outState.style.display = 'none';
+      inState.style.display  = 'block';
+      document.getElementById('userEmailDisplay').textContent = window.currentUser.email;
+    } else {
+      outState.style.display = 'block';
+      inState.style.display  = 'none';
+      const e = document.getElementById('authEmail');
+      const p = document.getElementById('authPassword');
+      if (e) e.value = '';
+      if (p) p.value = '';
+    }
+  }
+
+  function showAuthError(msg) {
+    const err = document.getElementById('authError');
+    if (!err) return;
+    err.textContent = msg;
+    err.style.display = 'block';
+  }
+
+  async function loginWithEmail() {
+    alert('Login is temporarily disabled.');
+  }
+
+  async function signupWithEmail() {
+    alert('Signup is temporarily disabled.');
+  }
+
+  function logout() { alert('Logout is disabled.'); }
+
+  // ── Push Notifications ──────────────────────────────────
+  async function enablePushNotifications() {
+    const statusEl = document.getElementById('pushStatusText');
+    const btn      = document.getElementById('enablePushBtn');
+    if (!window.currentUser) {
+      statusEl.style.color = 'var(--pink-light)';
+      statusEl.textContent = '⚠ Please sign in first.';
+      return;
+    }
+    if (!window.messaging) {
+      statusEl.style.color = 'var(--pink-light)';
+      statusEl.textContent = '⚠ Push not supported in this browser.';
+      return;
+    }
+    try {
+      btn.textContent = 'Requesting...';
+      btn.disabled    = true;
+      const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const token = await window.messaging.getToken({
+        vapidKey: 'BBYQUFJqj0C0QReP0pVyVn7VFtTsScb-YhzmmurDAri4Y_lzR_XsEThbolKJI5l2bEqR_cTB1HAJURu6hqPgfOg',
+        serviceWorkerRegistration: reg
+      });
+      if (token) {
+        await window.db.collection('users').doc(window.currentUser.uid)
+          .collection('settings').doc('fcm')
+          .set({ token, updatedAt: new Date().toISOString() });
+        statusEl.style.color = 'var(--teal)';
+        statusEl.textContent = '✅ Push notifications enabled!';
+        btn.textContent      = '✅ Enabled';
+        btn.disabled         = true;
+      } else { throw new Error('No token received'); }
+    } catch(e) {
+      console.error('FCM token error:', e);
+      statusEl.style.color = 'var(--pink-light)';
+      statusEl.textContent = '⚠ Could not enable. ' + (e.message || '');
+      btn.textContent      = 'Enable';
+      btn.disabled         = false;
+    }
+  }
+
+  async function checkPushStatus() {
+    if (!window.currentUser || !window.db) return;
+    try {
+      const doc = await window.db.collection('users').doc(window.currentUser.uid)
+        .collection('settings').doc('fcm').get();
+      if (doc.exists && doc.data().token) {
+        const btn      = document.getElementById('enablePushBtn');
+        const statusEl = document.getElementById('pushStatusText');
+        if (btn)      { btn.textContent = '✅ Enabled'; btn.disabled = true; }
+        if (statusEl) statusEl.textContent = '✅ Push notifications enabled!';
+      }
+    } catch(e) { /* offline or not logged in */ }
+  }
+
+  // ── Data ─────────────────────────────────────────────────
+  function exportJSON() {
+    const data = {
+      entries: getEntries(),
+      goals: getGoals(),
+      customCoping: getCustomCopingActions(),
+      exportedAt: new Date().toISOString()
+    };
+    downloadFile('moodtrace-backup.json', JSON.stringify(data, null, 2), 'application/json');
+  }
+
+  function importJSON(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!Array.isArray(data.entries)) { alert('Invalid backup file.'); return; }
+        if (!confirm(`Import ${data.entries.length} entries? This will merge with your existing data.`)) return;
+        const existing = getEntries();
+        const existingIds = new Set(existing.map(e => e.id));
+        const merged = [...data.entries.filter(e => !existingIds.has(e.id)), ...existing];
+        saveEntries(merged);
+        if (data.goals) saveGoals(data.goals);
+        if (data.customCoping) saveCustomCopingActions(data.customCoping);
+        alert(`✅ Imported ${data.entries.length} entries successfully!`);
+      } catch { alert('Failed to read file. Make sure it is a valid MoodTrace JSON backup.'); }
+    };
+    reader.readAsText(file);
+  }
+
+  function clearAllData() {
+    if (!confirm('Are you sure? This will permanently delete ALL your entries and cannot be undone.')) return;
+    if (!confirm('Last chance — delete everything?')) return;
+    localStorage.removeItem('moodtrace_entries');
+    localStorage.removeItem('moodtrace_goals');
+    localStorage.removeItem('moodtrace_ai_msg');
+    alert('All data cleared.');
+    window.location.href = 'index.html';
+  }
+
+  function renderCustomList() {
+    const list   = document.getElementById('customCopingList');
+    const custom = getCustomCopingActions();
+    if (!list) return;
+    if (!custom.length) { list.innerHTML = '<div style="font-size:0.82rem;color:var(--text-muted)">No custom actions yet.</div>'; return; }
+    list.innerHTML = custom.map((a, i) => `
+      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.5rem">
+        <span style="flex:1;font-size:0.88rem">${escHtml(a.label)}</span>
+        <button onclick="removeCustomCoping(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.78rem" onmouseover="this.style.color='var(--pink-light)'" onmouseout="this.style.color='var(--text-muted)'">✕ remove</button>
+      </div>`).join('');
+  }
+
+  function removeCustomCoping(index) {
+    const custom = getCustomCopingActions();
+    custom.splice(index, 1);
+    saveCustomCopingActions(custom);
+    renderCustomList();
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    if (typeof initAccessibility === 'function') initAccessibility();
+    if (typeof renderReminderManager === 'function') renderReminderManager();
+    if (typeof renderCustomCategoryManager === 'function') renderCustomCategoryManager();
+    renderCustomList();
+    if (typeof renderShareLinks === 'function') renderShareLinks();
+    if (typeof requestNotificationPermission === 'function') requestNotificationPermission();
+    updateAuthUI();
+    checkPushStatus();
+  });
+</script>
+</body>
+</html>

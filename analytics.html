@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Analytics</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="analytics">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Mood<span>Trace</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="analytics.html" class="active"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+    </ul>
+    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">📊 Analytics</div>
+    </div>
+    <h1 class="page-title">Your Mood <span class="accent-pink">Insights</span></h1>
+    <p class="page-subtitle" id="analyticsSubtitle">Patterns and trends from your entries.</p>
+  </div>
+
+  <!-- Mini Stats -->
+  <div class="stat-row">
+    <div class="mini-stat"><div class="mini-stat-icon">📈</div><div><div class="mini-stat-label">Avg Mood Score</div><div class="mini-stat-val" id="aAvgMood" style="color:var(--purple-light)">—</div></div></div>
+    <div class="mini-stat"><div class="mini-stat-icon">🏆</div><div><div class="mini-stat-label">Best Day</div><div class="mini-stat-val" id="aBestDay" style="color:var(--teal-light)">—</div></div></div>
+    <div class="mini-stat"><div class="mini-stat-icon">📉</div><div><div class="mini-stat-label">Worst Day</div><div class="mini-stat-val" id="aWorstDay" style="color:var(--orange-light)">—</div></div></div>
+    <div class="mini-stat"><div class="mini-stat-icon">🔁</div><div><div class="mini-stat-label">Top Trigger</div><div class="mini-stat-val" id="aTopTrigger" style="color:var(--pink-light)">—</div></div></div>
+  </div>
+
+  <div id="noDataMsg" style="display:none;text-align:center;padding:3rem;color:var(--text-muted)">
+    <div style="font-size:2.5rem;margin-bottom:1rem">📊</div>
+    <p>No entries yet. <a href="add-entry.html" style="color:var(--purple-light)">Add some entries</a> to see your analytics!</p>
+  </div>
+
+  <div id="chartsSection">
+
+    <div class="analytics-grid">
+      <div class="card chart-card">
+        <div class="chart-title">Daily Mood Trend</div>
+        <div class="chart-sub" id="trendSub">This month · Score out of 10 · avg if multiple entries</div>
+        <canvas id="trendChart" height="140"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">Issues by Category</div>
+        <div class="chart-sub">Proportion of all entries</div>
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="160" height="160"></canvas>
+          <div class="donut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span class="legend-name">Work</span><span class="legend-pct" id="pctWork" style="color:var(--purple-light)">0%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light)"></div><span class="legend-name">Money</span><span class="legend-pct" id="pctMoney" style="color:var(--teal-light)">0%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--orange-light)"></div><span class="legend-name">Health</span><span class="legend-pct" id="pctHealth" style="color:var(--orange-light)">0%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--pink-light)"></div><span class="legend-name">Relationships</span><span class="legend-pct" id="pctRel" style="color:var(--pink-light)">0%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card chart-card">
+        <div class="chart-title">Average Mood by Category</div>
+        <div class="chart-sub">Score out of 10</div>
+        <canvas id="avgChart" height="160"></canvas>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">Mood by Time of Day</div>
+        <div class="chart-sub">When do you feel best?</div>
+        <canvas id="timeChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:1.25rem">
+      <div class="card chart-card">
+        <div class="chart-title">Logging Streak</div>
+        <div class="chart-sub" id="streakSub">Loading…</div>
+        <div class="streak-grid" id="streakGrid" style="margin-top:1rem"></div>
+        <div style="margin-top:1rem;display:flex;gap:1rem;font-size:0.75rem;color:var(--text-muted)">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(124,58,237,0.4);margin-right:0.3rem"></span>Logged</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);margin-right:0.3rem"></span>Missed</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--purple);margin-right:0.3rem"></span>Today</span>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">Coping Action Effectiveness</div>
+        <div class="chart-sub">Avg "Did it help?" rating per action (1–5)</div>
+        <div id="copingChartWrap"><canvas id="copingChart" height="180"></canvas></div>
+        <div id="noCopingMsg" style="display:none;text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.85rem">No coping actions logged yet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="init-analytics.js"></script>
+</body>
+</html>
