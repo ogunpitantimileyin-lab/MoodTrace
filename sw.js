@@ -1,7 +1,9 @@
-const CACHE_NAME = 'moodtrace-v1';
+const CACHE_NAME = 'moodtrace-v2';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/login.html',
+  '/profile.html',
   '/add-entry.html',
   '/history.html',
   '/analytics.html',
@@ -11,8 +13,12 @@ const urlsToCache = [
   '/insights.html',
   '/share.html',
   '/styles.css',
+  '/storage.js',
+  '/auth.js',
+  '/firebase-config.js',
   '/app.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/moodtrace-logo.svg'
 ];
 
 // Install event - cache resources

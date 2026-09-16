@@ -8,15 +8,16 @@ const firebaseConfig = {
   appId: "1:972782820639:web:dd6b8fe31caadd5722e42a"
 };
 
-// Initialize Firebase (no auth flows — auth removed temporarily)
+// Initialize Firebase with Auth, Firestore, and Storage
 firebase.initializeApp(firebaseConfig);
 
+window.auth = firebase.auth();
 window.db = firebase.firestore();
 window.storage = firebase.storage();
 window.messaging = null;
 
 try {
-  if (firebase.messaging.isSupported()) {
+  if (firebase.messaging && firebase.messaging.isSupported()) {
     window.messaging = firebase.messaging();
   }
 } catch (e) {
@@ -35,7 +36,6 @@ if (window.db && typeof window.db.enablePersistence === 'function') {
     });
 }
 
-// Remove auth/login flows for now — keep DB/storage available for local-only usage
 window.currentUser = null;
 window.firestoreEntriesCache = null;
 window.firestoreGoalsCache = null;
@@ -47,4 +47,5 @@ function triggerAppRerender() {
   if (page === 'dashboard' && typeof renderDashboard === 'function') renderDashboard();
   if (page === 'history' && typeof renderHistory === 'function') renderHistory();
   if (page === 'analytics' && typeof renderAnalytics === 'function') renderAnalytics();
+  if (page === 'journal' && typeof renderJournalEntries === 'function') renderJournalEntries();
 }

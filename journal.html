@@ -1,10 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MoodTrace â€“ Journal</title>
+  <title>MoodTrace – Journal</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
+  <meta name="theme-color" content="#7C3AED">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,19 +16,40 @@
 <div class="ambient ambient-2"></div>
 <div class="ambient ambient-3"></div>
 
-<nav>
+<nav class="top-nav">
   <div class="nav-inner">
-    <div class="logo">Mood<span>Trace</span></div>
+    <a href="index.html" class="logo"><img src="moodtrace-logo.svg" alt="MoodTrace" class="logo-icon">Mood<span>Trace</span></a>
     <ul class="nav-links">
-      <li><a href="index.html"><span class="nav-icon">ðŸ </span><span class="label">Dashboard</span></a></li>
-      <li><a href="add-entry.html"><span class="nav-icon">âœï¸</span><span class="label">Add Entry</span></a></li>
-      <li><a href="history.html"><span class="nav-icon">ðŸ“‹</span><span class="label">History</span></a></li>
-      <li><a href="journal.html" class="active"><span class="nav-icon">ðŸ“”</span><span class="label">Journal</span></a></li>
-      <li><a href="analytics.html"><span class="nav-icon">ðŸ“Š</span><span class="label">Analytics</span></a></li>
-      <li><a href="settings.html"><span class="nav-icon">âš™ï¸</span><span class="label">Settings</span></a></li>
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="journal.html" class="active"><span class="nav-icon">📓</span><span class="label">Journal</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+      <li><a href="settings.html"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="profile.html"><span class="nav-icon">👤</span><span class="label">Profile</span></a></li>
     </ul>
-    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">â˜€ï¸</button>
+    <div style="display:flex;align-items:center;gap:0.6rem">
+      <a href="profile.html" class="nav-profile-pill" id="navProfileBtn" title="Account & Profile">
+        <span class="nav-profile-avatar" id="navProfileAvatar">👤</span>
+        <span class="nav-profile-name" id="navProfileName">Profile</span>
+      </a>
+      <button id="themeToggle" class="nav-theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    </div>
   </div>
+</nav>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+  <ul>
+    <li><a href="index.html"><span class="bn-icon">🏠</span>Home</a></li>
+    <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
+    <li><a href="history.html"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="journal.html" class="active"><span class="bn-icon">📓</span>Journal</a></li>
+    <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
+    <li><a href="profile.html"><span class="bn-icon">👤</span>Profile</a></li>
+  </ul>
 </nav>
 
 <div class="container">
@@ -41,8 +64,8 @@
   </div>
 
   <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center">
-    <button class="btn btn-teal" onclick="openJournalEditor()" aria-label="Write new journal entry">âœï¸ Write New Entry</button>
-    <button class="btn btn-ghost" onclick="exportJournalJSON()" aria-label="Export journal as JSON">ðŸ“¤ Export</button>
+    <button class="btn btn-teal" onclick="openJournalEditor()" aria-label="Write new journal entry">✏️ Write New Entry</button>
+    <button class="btn btn-ghost" onclick="exportJournalJSON()" aria-label="Export journal as JSON">📥 Export</button>
   </div>
 
   <!-- Journal Entries -->
@@ -55,12 +78,12 @@
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
       <h3 style="font-family:'Syne',sans-serif;font-weight:700">New Journal Entry</h3>
-      <button onclick="closeJournalEditor()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem" aria-label="Close editor">âœ•</button>
+      <button onclick="closeJournalEditor()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem" aria-label="Close editor">✕</button>
     </div>
     
     <div class="form-section">
       <label class="form-label" for="journalTitle">Title</label>
-      <input type="text" id="journalTitle" class="form-input" placeholder="Give your entry a titleâ€¦">
+      <input type="text" id="journalTitle" class="form-input" placeholder="Give your entry a title…">
     </div>
     
     <div class="form-section">
@@ -70,11 +93,11 @@
     
     <div class="form-section">
       <label class="form-label" for="journalBody">Your thoughts</label>
-      <textarea id="journalBody" class="form-textarea" placeholder="Write freely. No mood rating needed here â€” just your thoughts and feelings." style="min-height:200px"></textarea>
+      <textarea id="journalBody" class="form-textarea" placeholder="Write freely. No mood rating needed here — just your thoughts and feelings." style="min-height:200px"></textarea>
     </div>
     
     <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
-      <button class="btn btn-primary" onclick="saveJournalEntry()" style="flex:1">ðŸ’¾ Save Entry</button>
+      <button class="btn btn-primary" onclick="saveJournalEntry()" style="flex:1">💾 Save Entry</button>
       <button class="btn btn-ghost" onclick="closeJournalEditor()">Cancel</button>
     </div>
   </div>
@@ -86,6 +109,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script src="init-dashboard.js"></script>
 <script>

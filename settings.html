@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MoodTrace – Settings</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,18 +15,40 @@
 <div class="ambient ambient-2"></div>
 <div class="ambient ambient-3"></div>
 
-<nav>
+<nav class="top-nav">
   <div class="nav-inner">
-    <div class="logo">Mood<span>Trace</span></div>
+    <a href="index.html" class="logo"><img src="moodtrace-logo.svg" alt="MoodTrace" class="logo-icon">Mood<span>Trace</span></a>
     <ul class="nav-links">
       <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
       <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
       <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="journal.html"><span class="nav-icon">📓</span><span class="label">Journal</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
       <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
       <li><a href="settings.html" class="active"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="profile.html"><span class="nav-icon">👤</span><span class="label">Profile</span></a></li>
     </ul>
-    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+    <div style="display:flex;align-items:center;gap:0.6rem">
+      <a href="profile.html" class="nav-profile-pill" id="navProfileBtn" title="Account & Profile">
+        <span class="nav-profile-avatar" id="navProfileAvatar">👤</span>
+        <span class="nav-profile-name" id="navProfileName">Profile</span>
+      </a>
+      <button id="themeToggle" class="nav-theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    </div>
   </div>
+</nav>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+  <ul>
+    <li><a href="index.html"><span class="bn-icon">🏠</span>Home</a></li>
+    <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
+    <li><a href="history.html"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="journal.html"><span class="bn-icon">📓</span>Journal</a></li>
+    <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
+    <li><a href="profile.html"><span class="bn-icon">👤</span>Profile</a></li>
+  </ul>
 </nav>
 
 <div class="container">
@@ -40,13 +63,31 @@
   </div>
 
   
-  <!-- Account & Cloud Sync (temporarily disabled) -->
+  <!-- Account & Cloud Sync -->
   <div class="card section-gap" style="padding:1.75rem">
-    <div class="section-title">Account &amp; Cloud Sync</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">
+      <div class="section-title" style="margin-bottom:0">Account &amp; Cloud Sync</div>
+      <span id="settingsAccountBadge" class="profile-badge guest">Guest Mode</span>
+    </div>
     <div id="accountSection">
-      <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem">Cloud sync and login features are temporarily disabled while we refine the authentication flow.</p>
-      <div style="display:flex;gap:0.75rem">
-        <button class="btn btn-ghost" onclick="alert('Cloud sync is currently disabled. We will re-enable this later.')">OK</button>
+      <div id="settingsLoggedInBox" style="display:none">
+        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:1rem">
+          Signed in as <strong id="settingsUserEmail" style="color:var(--text)"></strong>. Your data is synced automatically across your devices.
+        </p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <a href="profile.html" class="btn btn-teal">👤 Manage Profile</a>
+          <button class="btn btn-ghost" onclick="handleSettingsSyncNow()" id="settingsSyncBtn">🔄 Sync Now</button>
+          <button class="btn btn-ghost" onclick="handleSettingsLogout()" style="color:var(--pink-light)">Sign Out</button>
+        </div>
+      </div>
+      <div id="settingsLoggedOutBox">
+        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:1rem">
+          You are currently using local storage. Sign in or create an account to back up your entries to the cloud and log in from any device.
+        </p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <a href="login.html" class="btn btn-primary">Sign In / Create Account →</a>
+          <a href="profile.html" class="btn btn-ghost">View Profile</a>
+        </div>
       </div>
     </div>
   </div>
@@ -70,6 +111,12 @@
     <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">Your custom actions appear on the Add Entry form alongside the defaults.</p>
     <div id="customCopingList"></div>
     <button class="btn btn-teal" onclick="openCustomCopingEditor()" style="margin-top:0.75rem">＋ Add Custom Action</button>
+  </div>
+
+  <!-- Privacy & App Lock -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Privacy &amp; App Lock</div>
+    <div id="appLockSettingsContainer"></div>
   </div>
 
   <!-- Features -->
@@ -102,6 +149,13 @@
     <div class="section-title">Data</div>
     <div style="display:flex;flex-direction:column;gap:0.75rem;margin-top:0.75rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Therapy &amp; Clinical PDF Report</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Multi-page medical summary with stability index, coping efficacy &amp; incident log</div>
+        </div>
+        <button class="btn btn-primary" onclick="openClinicalReportModal()">📑 Export Clinical PDF</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:0.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
         <div>
           <div style="font-weight:500;font-size:0.9rem">Export All Data</div>
           <div style="font-size:0.78rem;color:var(--text-muted)">Download all entries as a CSV file</div>
@@ -155,44 +209,66 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script src="init-settings.js"></script>
 <script>
-  // ── Auth ────────────────────────────────────────────────
+  // ── Auth & Account UI ────────────────────────────────────
   function updateAuthUI() {
-    const outState = document.getElementById('loggedOutState');
-    const inState  = document.getElementById('loggedInState');
-    if (!outState || !inState) return;
-    if (window.currentUser) {
-      outState.style.display = 'none';
-      inState.style.display  = 'block';
-      document.getElementById('userEmailDisplay').textContent = window.currentUser.email;
+    const inBox = document.getElementById('settingsLoggedInBox');
+    const outBox = document.getElementById('settingsLoggedOutBox');
+    const emailEl = document.getElementById('settingsUserEmail');
+    const badgeEl = document.getElementById('settingsAccountBadge');
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+
+    if (!inBox || !outBox) return;
+
+    if (user) {
+      inBox.style.display = 'block';
+      outBox.style.display = 'none';
+      if (emailEl) emailEl.textContent = user.email || user.displayName || 'Cloud Account';
+      if (badgeEl) {
+        badgeEl.textContent = '☁️ Cloud Account';
+        badgeEl.className = 'profile-badge cloud';
+      }
     } else {
-      outState.style.display = 'block';
-      inState.style.display  = 'none';
-      const e = document.getElementById('authEmail');
-      const p = document.getElementById('authPassword');
-      if (e) e.value = '';
-      if (p) p.value = '';
+      inBox.style.display = 'none';
+      outBox.style.display = 'block';
+      if (badgeEl) {
+        badgeEl.textContent = '📴 Guest Mode';
+        badgeEl.className = 'profile-badge guest';
+      }
     }
   }
 
-  function showAuthError(msg) {
-    const err = document.getElementById('authError');
-    if (!err) return;
-    err.textContent = msg;
-    err.style.display = 'block';
+  async function handleSettingsLogout() {
+    if (!confirm('Are you sure you want to sign out on this device?')) return;
+    if (window.authAPI) {
+      await window.authAPI.signOut();
+      updateAuthUI();
+    }
   }
 
-  async function loginWithEmail() {
-    alert('Login is temporarily disabled.');
+  async function handleSettingsSyncNow() {
+    const btn = document.getElementById('settingsSyncBtn');
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
+    try {
+      if (window.storageAPI) {
+        await window.storageAPI.syncWithCloud(user);
+        if (btn) btn.textContent = '✅ Synced!';
+        setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = '🔄 Sync Now'; } }, 2000);
+      }
+    } catch(e) {
+      alert('Could not sync: ' + e.message);
+      if (btn) { btn.disabled = false; btn.textContent = '🔄 Sync Now'; }
+    }
   }
-
-  async function signupWithEmail() {
-    alert('Signup is temporarily disabled.');
-  }
-
-  function logout() { alert('Logout is disabled.'); }
 
   // ── Push Notifications ──────────────────────────────────
   async function enablePushNotifications() {
@@ -316,6 +392,7 @@
     if (typeof renderReminderManager === 'function') renderReminderManager();
     if (typeof renderCustomCategoryManager === 'function') renderCustomCategoryManager();
     renderCustomList();
+    if (typeof renderAppLockSettings === 'function') renderAppLockSettings();
     if (typeof renderShareLinks === 'function') renderShareLinks();
     if (typeof requestNotificationPermission === 'function') requestNotificationPermission();
     updateAuthUI();

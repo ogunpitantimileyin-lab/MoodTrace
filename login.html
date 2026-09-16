@@ -1,0 +1,551 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Sign In or Join</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
+  <meta name="theme-color" content="#7C3AED">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .auth-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      position: relative;
+      z-index: 10;
+    }
+    .auth-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.25rem 2rem;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      position: relative;
+      backdrop-filter: blur(12px);
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--text);
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+    .auth-logo img {
+      width: 32px;
+      height: 32px;
+    }
+    .auth-logo span {
+      color: var(--purple-light);
+    }
+    .auth-subtitle {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .auth-tabs {
+      display: flex;
+      background: var(--bg3);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.6rem 0.8rem;
+      text-align: center;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-tab.active {
+      background: var(--purple);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+    .auth-form-group {
+      margin-bottom: 1.15rem;
+      position: relative;
+    }
+    .auth-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .auth-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-input:focus {
+      border-color: var(--purple-light);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+    }
+    .auth-pwd-toggle {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.25rem;
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.25rem 0;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-divider span {
+      padding: 0 0.75rem;
+    }
+    .btn-google {
+      width: 100%;
+      background: #ffffff;
+      color: #1f2937;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .btn-google:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+    }
+    .guest-cta {
+      text-align: center;
+      margin-top: 1.25rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--border);
+    }
+    .guest-link {
+      color: var(--teal-light);
+      font-size: 0.85rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .guest-link:hover {
+      text-decoration: underline;
+    }
+    .auth-alert {
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .auth-alert.error {
+      background: rgba(219, 39, 119, 0.15);
+      border: 1px solid var(--pink);
+      color: #fca5a5;
+    }
+    .auth-alert.success {
+      background: rgba(13, 148, 136, 0.15);
+      border: 1px solid var(--teal);
+      color: var(--teal-light);
+    }
+    .already-in-box {
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+  </style>
+</head>
+<body data-page="login">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<div class="auth-page-wrapper">
+  <div class="auth-card">
+    
+    <div class="auth-header">
+      <a href="index.html" class="auth-logo">
+        <img src="moodtrace-logo.svg" alt="MoodTrace">
+        Mood<span>Trace</span>
+      </a>
+      <p class="auth-subtitle" id="authSubTitle">Sign in to sync your mood insights seamlessly across your devices.</p>
+    </div>
+
+    <!-- Feedback banner -->
+    <div id="authAlert" class="auth-alert"></div>
+
+    <!-- Active session view (if already logged in) -->
+    <div id="alreadyLoggedInView" class="already-in-box" style="display:none">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem">👋</div>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.15rem;margin-bottom:0.35rem">You're already signed in!</h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem" id="loggedInUserEmail"></p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <a href="index.html" class="btn btn-primary" style="justify-content:center">Go to Dashboard →</a>
+        <a href="profile.html" class="btn btn-teal" style="justify-content:center">View Profile</a>
+        <button class="btn btn-ghost" onclick="handleLogout()" style="justify-content:center">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Form container -->
+    <div id="authFormsContainer">
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <form id="signInForm" onsubmit="handleSignIn(event)">
+        <div class="auth-form-group">
+          <label class="auth-label" for="loginEmail">Email Address</label>
+          <div class="auth-input-wrap">
+            <input type="email" id="loginEmail" class="auth-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem">
+            <label class="auth-label" for="loginPassword" style="margin-bottom:0">Password</label>
+            <button type="button" onclick="openForgotModal()" style="background:none;border:none;color:var(--purple-light);font-size:0.78rem;cursor:pointer">Forgot?</button>
+          </div>
+          <div class="auth-input-wrap">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="auth-pwd-toggle" onclick="togglePwdVisibility('loginPassword', this)">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;padding:0.75rem">
+          Sign In →
+        </button>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="signUpForm" onsubmit="handleSignUp(event)" style="display:none">
+        <div class="auth-form-group">
+          <label class="auth-label" for="signupName">Your Name</label>
+          <div class="auth-input-wrap">
+            <input type="text" id="signupName" class="auth-input" placeholder="e.g. Alex Smith" required autocomplete="name">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label" for="signupEmail">Email Address</label>
+          <div class="auth-input-wrap">
+            <input type="email" id="signupEmail" class="auth-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label" for="signupPassword">Password</label>
+          <div class="auth-input-wrap">
+            <input type="password" id="signupPassword" class="auth-input" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+            <button type="button" class="auth-pwd-toggle" onclick="togglePwdVisibility('signupPassword', this)">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="signupBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;padding:0.75rem">
+          Create Account ✨
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider">
+        <span>or continue with</span>
+      </div>
+
+      <!-- Google Sign In -->
+      <button type="button" class="btn-google" onclick="handleGoogleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <!-- Guest / Offline link -->
+      <div class="guest-cta">
+        <button type="button" class="guest-link" onclick="handleContinueAsGuest()">
+          <span>📴 Continue as Guest (Offline Mode)</span> →
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── FORGOT PASSWORD MODAL ─── -->
+<div id="forgotModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:400px;width:100%;position:relative">
+    <button onclick="closeForgotModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;margin-bottom:0.5rem">Reset Password</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.5;margin-bottom:1.25rem">
+      Enter your account email and we'll send you a link to reset your password.
+    </p>
+    <div id="forgotAlert" class="auth-alert"></div>
+    <div class="auth-form-group">
+      <label class="auth-label" for="forgotEmail">Email Address</label>
+      <input type="email" id="forgotEmail" class="auth-input" placeholder="you@example.com">
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:1.25rem">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="handleSendReset()">Send Link</button>
+      <button class="btn btn-ghost" onclick="closeForgotModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="auth.js"></script>
+
+<script>
+  function getRedirectTarget() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('redirect') || 'index.html';
+  }
+
+  function showAlert(msg, isError = true) {
+    const alertEl = document.getElementById('authAlert');
+    alertEl.textContent = msg;
+    alertEl.className = `auth-alert ${isError ? 'error' : 'success'}`;
+    alertEl.style.display = 'block';
+  }
+
+  function hideAlert() {
+    const alertEl = document.getElementById('authAlert');
+    alertEl.style.display = 'none';
+  }
+
+  function switchAuthTab(tab) {
+    hideAlert();
+    const signinTab = document.getElementById('tabSignIn');
+    const signupTab = document.getElementById('tabSignUp');
+    const signinForm = document.getElementById('signInForm');
+    const signupForm = document.getElementById('signUpForm');
+    const subtitle = document.getElementById('authSubTitle');
+
+    if (tab === 'signup') {
+      signinTab.classList.remove('active');
+      signupTab.classList.add('active');
+      signinForm.style.display = 'none';
+      signupForm.style.display = 'block';
+      subtitle.textContent = 'Create your free account to sync mood patterns across devices.';
+    } else {
+      signupTab.classList.remove('active');
+      signinTab.classList.add('active');
+      signupForm.style.display = 'none';
+      signinForm.style.display = 'block';
+      subtitle.textContent = 'Sign in to sync your mood insights seamlessly across your devices.';
+    }
+  }
+
+  function togglePwdVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+  async function handleSignIn(e) {
+    e.preventDefault();
+    hideAlert();
+    const email = document.getElementById('loginEmail').value;
+    const pwd = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+      await window.authAPI.signIn(email, pwd);
+      localStorage.setItem('moodtrace_onboarded', '1');
+      showAlert('Signed in successfully! Redirecting...', false);
+      setTimeout(() => {
+        window.location.href = getRedirectTarget();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      showAlert(window.authAPI.getFriendlyError(err));
+      btn.disabled = false;
+      btn.textContent = 'Sign In →';
+    }
+  }
+
+  async function handleSignUp(e) {
+    e.preventDefault();
+    hideAlert();
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const pwd = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupBtn');
+
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+
+    try {
+      await window.authAPI.signUp(email, pwd, name);
+      localStorage.setItem('moodtrace_onboarded', '1');
+      showAlert('Account created! Welcome to MoodTrace. Redirecting...', false);
+      setTimeout(() => {
+        window.location.href = getRedirectTarget();
+      }, 600);
+    } catch (err) {
+      console.error(err);
+      showAlert(window.authAPI.getFriendlyError(err));
+      btn.disabled = false;
+      btn.textContent = 'Create Account ✨';
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    hideAlert();
+    try {
+      await window.authAPI.signInWithGoogle();
+      localStorage.setItem('moodtrace_onboarded', '1');
+      showAlert('Signed in with Google! Redirecting...', false);
+      setTimeout(() => {
+        window.location.href = getRedirectTarget();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      showAlert(window.authAPI.getFriendlyError(err));
+    }
+  }
+
+  function handleContinueAsGuest() {
+    localStorage.setItem('moodtrace_onboarded', '1');
+    window.authAPI.setGuestMode(true);
+    window.location.href = getRedirectTarget();
+  }
+
+  async function handleLogout() {
+    await window.authAPI.signOut();
+    document.getElementById('alreadyLoggedInView').style.display = 'none';
+    document.getElementById('authFormsContainer').style.display = 'block';
+    showAlert('Signed out. You can now log in with another account or use guest mode.', false);
+  }
+
+  // Forgot password
+  function openForgotModal() {
+    document.getElementById('forgotModal').style.display = 'flex';
+    document.getElementById('forgotAlert').style.display = 'none';
+    const email = document.getElementById('loginEmail').value;
+    if (email) document.getElementById('forgotEmail').value = email;
+  }
+
+  function closeForgotModal() {
+    document.getElementById('forgotModal').style.display = 'none';
+  }
+
+  async function handleSendReset() {
+    const email = document.getElementById('forgotEmail').value;
+    const alertEl = document.getElementById('forgotAlert');
+    if (!email) {
+      alertEl.textContent = 'Please enter your email.';
+      alertEl.className = 'auth-alert error';
+      alertEl.style.display = 'block';
+      return;
+    }
+    try {
+      await window.authAPI.sendPasswordReset(email);
+      alertEl.textContent = 'Password reset link sent! Check your inbox.';
+      alertEl.className = 'auth-alert success';
+      alertEl.style.display = 'block';
+      setTimeout(() => closeForgotModal(), 2000);
+    } catch (err) {
+      alertEl.textContent = window.authAPI.getFriendlyError(err);
+      alertEl.className = 'auth-alert error';
+      alertEl.style.display = 'block';
+    }
+  }
+
+  // Check URL query for default tab
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'signup') {
+    switchAuthTab('signup');
+  }
+
+  // Check auth state for returning user
+  window.addEventListener('moodtrace-auth-changed', (e) => {
+    const user = e.detail && e.detail.user;
+    if (user) {
+      document.getElementById('alreadyLoggedInView').style.display = 'block';
+      document.getElementById('authFormsContainer').style.display = 'none';
+      document.getElementById('loggedInUserEmail').textContent = user.email;
+    } else {
+      document.getElementById('alreadyLoggedInView').style.display = 'none';
+      document.getElementById('authFormsContainer').style.display = 'block';
+    }
+  });
+</script>
+
+</body>
+</html>

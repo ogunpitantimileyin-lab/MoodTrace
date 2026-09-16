@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1138"/>
+      <stop offset="50%" stop-color="#120924"/>
+      <stop offset="100%" stop-color="#090514"/>
+    </linearGradient>
+
+    <!-- Leaf Main Body Gradient -->
+    <linearGradient id="leafGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#14B8A6"/>
+      <stop offset="45%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#DB2777"/>
+    </linearGradient>
+
+    <!-- Trace Vein / Ripple Gradient -->
+    <linearGradient id="traceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2DD4BF"/>
+      <stop offset="50%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+
+    <!-- Ripple Wave Gradient -->
+    <linearGradient id="rippleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Ambient Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="auraBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="48"/>
+    </filter>
+  </defs>
+
+  <!-- App Icon Background Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)"/>
+  <rect width="510" height="510" x="1" y="1" rx="115" fill="none" stroke="rgba(167, 139, 250, 0.22)" stroke-width="2"/>
+
+  <!-- Radiant Background Ambient Aura -->
+  <ellipse cx="270" cy="230" rx="140" ry="110" fill="#7C3AED" opacity="0.3" filter="url(#auraBlur)"/>
+  <ellipse cx="230" cy="270" rx="100" ry="80" fill="#14B8A6" opacity="0.25" filter="url(#auraBlur)"/>
+
+  <!-- ─── WATER RIPPLE WAVES (Emotional Rhythm) ─── -->
+  <!-- Outer Ripple Arc -->
+  <path d="M 120 370 C 180 415, 332 415, 392 370" 
+        fill="none" 
+        stroke="url(#traceGrad)" 
+        stroke-width="4" 
+        stroke-linecap="round" 
+        opacity="0.35"/>
+
+  <!-- Middle Ripple Arc -->
+  <path d="M 155 342 C 205 378, 307 378, 357 342" 
+        fill="none" 
+        stroke="url(#traceGrad)" 
+        stroke-width="5" 
+        stroke-linecap="round" 
+        opacity="0.6"/>
+
+  <!-- Inner Ripple Arc -->
+  <path d="M 195 315 C 228 338, 284 338, 317 315" 
+        fill="none" 
+        stroke="url(#traceGrad)" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        opacity="0.85"/>
+
+  <!-- ─── ZEN LEAF BODY ─── -->
+  <!-- Left Half of Leaf (Shaded translucency) -->
+  <path d="M 330 110 C 230 135, 160 215, 185 305 C 235 300, 305 240, 330 110 Z" 
+        fill="url(#leafGrad)" 
+        opacity="0.88"/>
+
+  <!-- Right Half of Leaf (Luminous highlight) -->
+  <path d="M 330 110 C 375 185, 350 275, 255 318 C 295 260, 335 190, 330 110 Z" 
+        fill="url(#leafGrad)" 
+        opacity="0.95"/>
+
+  <!-- Leaf Body Accent Outline Glow -->
+  <path d="M 330 110 C 215 140, 160 230, 205 312 C 265 325, 365 265, 330 110 Z" 
+        fill="none" 
+        stroke="rgba(255, 255, 255, 0.25)" 
+        stroke-width="2"/>
+
+  <!-- ─── CENTRAL HARMONIC TRACE VEIN ─── -->
+  <!-- Sweeps through the leaf apex and flows outward into a mindful pulse wave -->
+  <path d="M 330 110 C 290 190, 250 250, 225 325 C 210 370, 250 380, 280 375 C 310 370, 325 390, 315 405" 
+        fill="none" 
+        stroke="url(#traceGrad)" 
+        stroke-width="9" 
+        stroke-linecap="round" 
+        filter="url(#softGlow)"/>
+
+  <!-- Core Bright Highlight on the Trace -->
+  <path d="M 330 110 C 290 190, 250 250, 225 325 C 210 370, 250 380, 280 375" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        opacity="0.75"/>
+
+  <!-- ─── MINDFUL AWARENESS SPARKLE ─── -->
+  <g transform="translate(346, 95)" filter="url(#softGlow)">
+    <!-- 4-point star -->
+    <path d="M 0 -16 Q 0 0 16 0 Q 0 0 0 16 Q 0 0 -16 0 Q 0 0 0 -16 Z" fill="#5EEAD4"/>
+    <circle cx="0" cy="0" r="3.5" fill="#ffffff"/>
+  </g>
+
+  <!-- Secondary subtle floating awareness dot -->
+  <circle cx="165" cy="185" r="4.5" fill="#A78BFA" opacity="0.7" filter="url(#softGlow)"/>
+  <circle cx="365" cy="245" r="3.5" fill="#F472B6" opacity="0.6" filter="url(#softGlow)"/>
+</svg>

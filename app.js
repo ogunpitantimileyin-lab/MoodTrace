@@ -1017,6 +1017,20 @@ function finishOnboarding() {
   if (modal) modal.style.display = 'none';
 }
 
+function finishOnboardingAndLogin() {
+  localStorage.setItem('moodtrace_onboarded', '1');
+  const modal = document.getElementById('onboardingModal');
+  if (modal) modal.style.display = 'none';
+  window.location.href = 'login.html';
+}
+
+function finishOnboardingGuest() {
+  localStorage.setItem('moodtrace_onboarded', '1');
+  if (window.authAPI) window.authAPI.setGuestMode(true);
+  const modal = document.getElementById('onboardingModal');
+  if (modal) modal.style.display = 'none';
+}
+
 // ─── ADD ENTRY PAGE ─────────────────────────────────────
 
 let selectedEmoji    = '😄';
@@ -2054,30 +2068,39 @@ function renderWeeklySummaryCard() {
   const container = document.getElementById('weeklySummaryCard');
   if (!container) return;
   const entries = getEntries();
+  if (!entries.length) {
+    container.style.display = 'none';
+    return;
+  }
   const now = new Date();
   const last7 = entries.filter(e => new Date(e.datetime) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
-  const avg = last7.length ? +(last7.reduce((s, e) => s + e.intensity, 0) / last7.length).toFixed(1) : 0;
-  const best = last7.length ? last7.reduce((a, b) => a.intensity > b.intensity ? a : b) : null;
+  if (!last7.length) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  const avg = +(last7.reduce((s, e) => s + e.intensity, 0) / last7.length).toFixed(1);
+  const best = last7.reduce((a, b) => a.intensity > b.intensity ? a : b);
   container.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
       <div>
-        <div class="section-title" style="margin:0">This Week</div>
-        <div style="font-size:0.82rem;color:var(--text-muted)">A quick snapshot of your recent mood and habits.</div>
+        <div class="section-title" style="margin:0">Past 7 Days</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">A gentle snapshot of your recent mood patterns and habits.</div>
       </div>
-      <div style="font-size:1rem;font-weight:700;color:var(--teal-light)">${avg ? `${avg}/10 avg mood` : 'No recent entries'}</div>
+      <div style="font-size:0.95rem;font-weight:700;color:var(--teal-light)">${avg}/10 avg mood</div>
     </div>
     <div class="grid-3">
       <div class="card" style="padding:1rem">
-        <div class="stat-label">Avg Mood</div>
-        <div class="stat-value teal">${avg || '—'}</div>
+        <div class="stat-label">7-Day Average</div>
+        <div class="stat-value teal">${avg}</div>
       </div>
       <div class="card" style="padding:1rem">
-        <div class="stat-label">Best Day</div>
+        <div class="stat-label">Brightest Day</div>
         <div class="stat-value purple">${best ? formatDate(best.datetime).date : '—'}</div>
       </div>
       <div class="card" style="padding:1rem">
-        <div class="stat-label">Habits</div>
-        <div style="font-size:0.9rem;color:var(--text-muted);margin-top:0.35rem">Sleep ${last7.length ? `${(last7.reduce((s, e) => s + (e.sleepHours || 0), 0) / last7.length).toFixed(1)}h` : '—'} · Exercise ${last7.length ? `${last7.reduce((s, e) => s + (e.exerciseMinutes || 0), 0)}m` : '—'}</div>
+        <div class="stat-label">Rest & Movement</div>
+        <div style="font-size:0.88rem;color:var(--text-muted);margin-top:0.35rem">Sleep ${last7.length ? `${(last7.reduce((s, e) => s + (e.sleepHours || 0), 0) / last7.length).toFixed(1)}h` : '—'} · Exercise ${last7.length ? `${last7.reduce((s, e) => s + (e.exerciseMinutes || 0), 0)}m` : '—'}</div>
       </div>
     </div>`;
 }
@@ -2093,8 +2116,8 @@ function renderDashboard() {
   setText('todayLabel', todayStr);
 
   if (!entries.length) {
-    setText('welcomeMsg', 'Welcome to MoodTrace! 👋');
-    setText('welcomeSub', 'Start logging your mood to see your insights here.');
+    setText('welcomeMsg', 'Welcome to MoodTrace 🌿');
+    setText('welcomeSub', 'Your private space to reflect, track how you feel, and discover quiet patterns.');
     renderCheckInPrompt();
     renderWeeklySummaryCard();
     renderGoals();
@@ -2118,16 +2141,16 @@ function renderDashboard() {
   const { streak } = calcStreak(entries);
 
   const avgMoodEl = document.getElementById('statAvgMood');
-  if (avgMoodEl) avgMoodEl.innerHTML = `${avg}<span style="font-size:1rem;opacity:0.6">/10</span>`;
-  setText('statAvgSub',      avg >= 7 ? '↑ Above average — great job!' : avg >= 5 ? 'Holding steady' : '↓ Below average — hang in there');
+  if (avgMoodEl) avgMoodEl.innerHTML = `${avg}<span style="font-size:1.1rem;opacity:0.6">/10</span>`;
+  setText('statAvgSub',      avg >= 7 ? '↑ Above baseline — feeling good!' : avg >= 5 ? 'Holding steady balance' : '↓ Below average — take it easy today');
   setText('statEntryCount',  monthEntries.length);
-  setText('statStreakSub',   `${streak}-day current streak 🔥`);
+  setText('statStreakSub',   streak ? `${streak}-day streak 🔥` : 'Log today to start streak');
   setText('statWorstDay',    formatDate(worst.datetime).date);
   setText('statWorstSub',    `Score ${worst.intensity}/10 — ${getCategoryLabel(worst.category)}`);
   
   const topLabel = getCategoryLabel(topCat[0]);
   setText('statTopIssue',    topLabel.substring(topLabel.indexOf(' ') + 1).trim() || topCat[0]);
-  setText('statTopIssueSub', `${topCat[1]} of ${entries.length} total entries`);
+  setText('statTopIssueSub', `${topCat[1]} of ${entries.length} reflections`);
   setText('statBestDay',     formatDate(best.datetime).date);
   setText('statBestSub',     `Score ${best.intensity}/10 — ${getCategoryLabel(best.category)}`);
   setText('statWellbeing',   getWellbeingLabel(avg));
@@ -2135,7 +2158,7 @@ function renderDashboard() {
   const hour     = now.getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   setText('welcomeMsg', `${greeting}! You're doing great.`);
-  setText('welcomeSub',  `You've logged ${monthEntries.length} entr${monthEntries.length === 1 ? 'y' : 'ies'} this month. Keep it up!`);
+  setText('welcomeSub',  `You've logged ${monthEntries.length} reflection${monthEntries.length === 1 ? '' : 's'} this month. Take a mindful breath.`);
 
   // Today's logs count
   const todayCount = getTodayEntries().length;
@@ -2160,6 +2183,8 @@ function renderDashboard() {
   renderWeeklySummaryCard();
   renderGoals();
   loadAIMessage();
+  renderPatternAlerts('patternAlertsSection');
+  renderDigestBanner('reflectionDigestBanner');
 }
 
 // ─── PAGE INIT ──────────────────────────────────────────
@@ -2497,6 +2522,600 @@ function renderInsights() {
       <div style="font-size:1.3rem;flex-shrink:0">${i.icon}</div>
       <div style="font-size:0.88rem;line-height:1.5;color:var(--text)">${i.text}</div>
     </div>`).join('');
+}
+
+// ─── INTELLIGENT PATTERN ALERTS ─────────────────────────
+
+function detectIntelligentPatterns(entries) {
+  if (!entries || !entries.length) return [];
+  const alerts = [];
+  const total = entries.length;
+  const allScores = entries.map(e => e.intensity);
+  const baselineAvg = +(allScores.reduce((a, b) => a + b, 0) / total).toFixed(1);
+
+  // 1. Coping action percentage impact (e.g. Walking, Exercise, Music, Meditation)
+  const copingMap = {};
+  entries.forEach(e => {
+    if (e.copingActions && Array.isArray(e.copingActions)) {
+      e.copingActions.forEach(act => {
+        if (!copingMap[act]) copingMap[act] = [];
+        copingMap[act].push(e.intensity);
+      });
+    }
+  });
+
+  Object.entries(copingMap).forEach(([action, scoresWith]) => {
+    if (scoresWith.length < 2) return;
+    const scoresWithout = entries.filter(e => !e.copingActions?.includes(action)).map(e => e.intensity);
+    if (scoresWithout.length < 2) return;
+
+    const avgWith = scoresWith.reduce((a, b) => a + b, 0) / scoresWith.length;
+    const avgWithout = scoresWithout.reduce((a, b) => a + b, 0) / scoresWithout.length;
+    const pctDiff = Math.round(((avgWith - avgWithout) / avgWithout) * 100);
+
+    const actionClean = COPING_LABELS[action]?.replace(/^[^\w\s]+\s*/, '') || action;
+
+    if (pctDiff >= 15) {
+      alerts.push({
+        id: `coping-${action}`,
+        type: 'positive',
+        tag: 'Habit Lift',
+        badge: `+${pctDiff}% Mood Boost`,
+        icon: '🌱',
+        title: `You report ${pctDiff}% higher mood on days you ${actionClean.toLowerCase()}`,
+        desc: `Your mood averages ${avgWith.toFixed(1)}/10 when you engage in ${actionClean.toLowerCase()}, compared to ${avgWithout.toFixed(1)}/10 on days without.`,
+        tip: `✨ Consistency matters more than duration. Keep this coping superpower in your toolkit!`
+      });
+    } else if (action === 'nothing' && pctDiff <= -15) {
+      alerts.push({
+        id: 'coping-nothing',
+        type: 'notice',
+        tag: 'Slump Notice',
+        badge: `${pctDiff}% Dip`,
+        icon: '⚠️',
+        title: `Days with no coping action correlate with lower mood`,
+        desc: `Taking no restorative action averages ${avgWith.toFixed(1)}/10 vs ${avgWithout.toFixed(1)}/10 when you take active steps.`,
+        tip: `💡 Even a 3-minute stretch or listening to a favorite track can interrupt an emotional slump.`
+      });
+    }
+  });
+
+  // 2. Day-of-Week Rhythm ("Sunday Scaries" & Weekend Peaks)
+  const dayBuckets = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  entries.forEach(e => {
+    const d = new Date(e.datetime);
+    dayBuckets[d.getDay()].push(e.intensity);
+  });
+
+  // Check Sunday Scaries (Day 0)
+  const sundayScores = dayBuckets[0];
+  if (sundayScores.length >= 2) {
+    const sunAvg = +(sundayScores.reduce((a, b) => a + b, 0) / sundayScores.length).toFixed(1);
+    if (sunAvg <= baselineAvg - 0.7) {
+      const dropPct = Math.round(((baselineAvg - sunAvg) / baselineAvg) * 100);
+      alerts.push({
+        id: 'sunday-scaries',
+        type: 'notice',
+        tag: 'Rhythm Notice',
+        badge: `-${dropPct}% Dip`,
+        icon: '🌙',
+        title: 'Notice: Sundays tend to have a mood dip (Sunday Scaries)',
+        desc: `Sundays average ${sunAvg}/10 compared to your baseline of ${baselineAvg}/10. Anticipatory stress often peaks on Sunday evenings.`,
+        tip: '🍵 Protect Sunday evenings with an intentional wind-down ritual, cozy dinner, or relaxing read.'
+      });
+    }
+  }
+
+  // Check Weekend Rebound (Fridays & Saturdays)
+  const weekendScores = [...dayBuckets[5], ...dayBuckets[6]];
+  if (weekendScores.length >= 2) {
+    const weekendAvg = +(weekendScores.reduce((a, b) => a + b, 0) / weekendScores.length).toFixed(1);
+    if (weekendAvg >= baselineAvg + 0.7) {
+      const boostPct = Math.round(((weekendAvg - baselineAvg) / baselineAvg) * 100);
+      alerts.push({
+        id: 'weekend-surge',
+        type: 'rhythm',
+        tag: 'Weekly Rhythm',
+        badge: `+${boostPct}% Weekend Surge`,
+        icon: '⚡',
+        title: 'End-of-week energy lifts your wellbeing',
+        desc: `Fridays and Saturdays bring a ${boostPct}% surge in positive sentiment (avg ${weekendAvg}/10 vs ${baselineAvg}/10 weekday average).`,
+        tip: '🎉 Notice what brings you freedom on weekends and weave a micro-dose of that into mid-week.'
+      });
+    }
+  }
+
+  // 3. Time of Day Pattern
+  const timeBuckets = { Morning: [], Afternoon: [], Evening: [], Night: [] };
+  entries.forEach(e => {
+    const h = new Date(e.datetime).getHours();
+    if (h >= 6 && h < 12) timeBuckets.Morning.push(e.intensity);
+    else if (h >= 12 && h < 18) timeBuckets.Afternoon.push(e.intensity);
+    else if (h >= 18 && h < 24) timeBuckets.Evening.push(e.intensity);
+    else timeBuckets.Night.push(e.intensity);
+  });
+
+  if (timeBuckets.Evening.length >= 2 && (timeBuckets.Morning.length >= 2 || timeBuckets.Afternoon.length >= 2)) {
+    const evAvg = timeBuckets.Evening.reduce((a, b) => a + b, 0) / timeBuckets.Evening.length;
+    const dayScores = [...timeBuckets.Morning, ...timeBuckets.Afternoon];
+    const dayAvg = dayScores.reduce((a, b) => a + b, 0) / dayScores.length;
+    if (evAvg <= dayAvg - 0.8) {
+      const dip = Math.round(((dayAvg - evAvg) / dayAvg) * 100);
+      alerts.push({
+        id: 'evening-slump',
+        type: 'notice',
+        tag: 'Time Rhythm',
+        badge: `-${dip}% Evening Dip`,
+        icon: '🌆',
+        title: 'Notice: Mood dips around evening time',
+        desc: `Your evening entries average ${evAvg.toFixed(1)}/10 vs ${dayAvg.toFixed(1)}/10 during daylight hours. Cognitive fatigue often compounds after 7 PM.`,
+        tip: '🛋️ Lower your evening demands: dim bright lights and transition to restorative activities.'
+      });
+    }
+  }
+
+  // 4. Primary Stressor Concentration
+  const lowEntries = entries.filter(e => e.intensity <= 4);
+  if (lowEntries.length >= 2) {
+    const catCounts = {};
+    lowEntries.forEach(e => { catCounts[e.category] = (catCounts[e.category] || 0) + 1; });
+    const sorted = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
+    const topLow = sorted[0];
+    const catPct = Math.round((topLow[1] / lowEntries.length) * 100);
+    if (catPct >= 35) {
+      const catLabel = getCategoryLabel(topLow[0]);
+      alerts.push({
+        id: `stressor-${topLow[0]}`,
+        type: 'notice',
+        tag: 'Trigger Focus',
+        badge: `${catPct}% of Low Days`,
+        icon: '🎯',
+        title: `${catLabel} is your primary emotional trigger`,
+        desc: `${catPct}% of your toughest moments trace back to ${catLabel}. Pinpointing this source helps focus your coping efforts.`,
+        tip: '🛡️ Consider setting clearer mental or time boundaries around this area.'
+      });
+    }
+  }
+
+  // 5. Rest & Sleep impact (if sleep logged)
+  const sleepEntries = entries.filter(e => typeof e.sleepHours === 'number' && e.sleepHours > 0);
+  if (sleepEntries.length >= 4) {
+    const goodSleep = sleepEntries.filter(e => e.sleepHours >= 7);
+    const poorSleep = sleepEntries.filter(e => e.sleepHours < 7);
+    if (goodSleep.length >= 2 && poorSleep.length >= 2) {
+      const goodAvg = goodSleep.reduce((a, b) => a + b.intensity, 0) / goodSleep.length;
+      const poorAvg = poorSleep.reduce((a, b) => a + b.intensity, 0) / poorSleep.length;
+      const lift = Math.round(((goodAvg - poorAvg) / poorAvg) * 100);
+      if (lift >= 15) {
+        alerts.push({
+          id: 'sleep-impact',
+          type: 'positive',
+          tag: 'Vital Habit',
+          badge: `+${lift}% Sleep Boost`,
+          icon: '🛌',
+          title: `7+ hours of sleep elevates your daily resilience by ${lift}%`,
+          desc: `You average ${goodAvg.toFixed(1)}/10 after restful sleep compared to ${poorAvg.toFixed(1)}/10 on nights under 7 hours.`,
+          tip: '🌙 Going to bed just 30 minutes earlier is one of your strongest mood multipliers.'
+        });
+      }
+    }
+  }
+
+  // Fallback demo/starter pattern if dataset is fresh
+  if (!alerts.length && total >= 1) {
+    alerts.push({
+      id: 'starter-welcome',
+      type: 'rhythm',
+      tag: 'Pattern Learning',
+      badge: `${total} Log${total > 1 ? 's' : ''} Collected`,
+      icon: '🔍',
+      title: 'MoodTrace is learning your personal rhythms',
+      desc: 'As you log over the next few days, intelligent correlation cards will automatically appear here comparing your coping habits, weekly rhythms, and times of day.',
+      tip: '✏️ Try logging in the morning and evening to help detect your daily energy curve.'
+    });
+  }
+
+  return alerts;
+}
+
+function renderPatternAlerts(containerId = 'patternAlertsSection') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const entries = getEntries();
+  const alerts = detectIntelligentPatterns(entries);
+
+  if (!alerts.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="pattern-alerts-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <div class="section-title" style="margin-bottom:0">Intelligent Pattern Alerts</div>
+        <span style="font-size:0.78rem;color:var(--text-muted)">${alerts.length} discovery${alerts.length > 1 ? 's' : ''}</span>
+      </div>
+      <div class="pattern-alerts-grid">
+        ${alerts.map(a => `
+          <div class="pattern-card ${a.type}">
+            <div>
+              <div class="pattern-header">
+                <span class="pattern-tag ${a.type}">${a.tag}</span>
+                <span class="pattern-badge-stat">${a.badge}</span>
+              </div>
+              <div class="pattern-title">${a.title}</div>
+              <div class="pattern-desc">${a.desc}</div>
+            </div>
+            <div class="pattern-tip">${a.tip}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+// ─── GUIDED REFLECTION DIGEST WIZARD ────────────────────
+
+window.digestState = {
+  type: 'weekly',
+  periodTitle: 'Weekly Reflection',
+  step: 1,
+  totalSteps: 6,
+  data: {},
+  intention: ''
+};
+
+function renderDigestBanner(containerId = 'reflectionDigestBanner') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const entries = getEntries();
+  if (entries.length < 2) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const isSunday = new Date().getDay() === 0;
+  const lastReview = localStorage.getItem('moodtrace_last_review');
+  const daysSinceReview = lastReview ? (Date.now() - new Date(lastReview).getTime()) / (1000 * 60 * 60 * 24) : 999;
+
+  // Show if today is Sunday or it's been > 5 days since last review
+  if (isSunday || daysSinceReview >= 5) {
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div class="digest-banner">
+        <div class="digest-banner-content">
+          <div class="digest-banner-icon">✨</div>
+          <div>
+            <div class="digest-banner-title">Your Weekly Reflection Digest is Ready</div>
+            <div class="digest-banner-sub">Take 2 minutes to celebrate your high points, honor tough moments, and set a kind intention for next week.</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="openReflectionDigest('weekly')" style="white-space:nowrap;font-size:0.85rem">Start Review →</button>
+      </div>`;
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+function openReflectionDigest(type = 'weekly') {
+  const entries = getEntries();
+  const now = new Date();
+  let filtered = [];
+  let periodTitle = '';
+
+  if (type === 'weekly') {
+    periodTitle = 'Weekly Reflection';
+    const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    filtered = entries.filter(e => new Date(e.datetime) >= cutoff);
+  } else {
+    periodTitle = 'Monthly Reflection';
+    filtered = entries.filter(e => {
+      const d = new Date(e.datetime);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+  }
+
+  // Calculate statistics
+  const scores = filtered.map(e => e.intensity);
+  const avg = scores.length ? +(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : null;
+  const best = filtered.length ? filtered.reduce((a, b) => a.intensity > b.intensity ? a : b) : null;
+  const worst = filtered.length ? filtered.reduce((a, b) => a.intensity < b.intensity ? a : b) : null;
+
+  // Coping efficacy
+  const copingStats = {};
+  filtered.forEach(e => {
+    if (e.copingActions && Array.isArray(e.copingActions)) {
+      e.copingActions.forEach(act => {
+        if (!copingStats[act]) copingStats[act] = { count: 0, helpedTotal: 0 };
+        copingStats[act].count++;
+        copingStats[act].helpedTotal += (e.helped || 3);
+      });
+    }
+  });
+
+  const rankedCoping = Object.entries(copingStats).map(([act, d]) => ({
+    action: act,
+    label: COPING_LABELS[act] || act,
+    count: d.count,
+    avgHelped: +(d.helpedTotal / d.count).toFixed(1)
+  })).sort((a, b) => b.avgHelped - a.avgHelped);
+
+  window.digestState = {
+    type,
+    periodTitle,
+    step: 1,
+    totalSteps: 6,
+    data: {
+      entriesCount: filtered.length,
+      avg,
+      best,
+      worst,
+      rankedCoping,
+      filtered
+    },
+    intention: ''
+  };
+
+  renderDigestStep(1);
+  const modal = document.getElementById('reflectionDigestModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function renderDigestStep(stepNum) {
+  window.digestState.step = stepNum;
+  const state = window.digestState;
+  const data = state.data;
+
+  // Update progress bar & badge
+  const bar = document.getElementById('digestProgressBar');
+  if (bar) bar.style.width = `${(stepNum / state.totalSteps) * 100}%`;
+  const badge = document.getElementById('digestStepBadge');
+  if (badge) badge.textContent = `Step ${stepNum} of ${state.totalSteps}`;
+
+  const content = document.getElementById('digestStepContent');
+  if (!content) return;
+
+  if (stepNum === 1) {
+    // Step 1: Pulse
+    let trajectoryText = '🌱 A fresh start — start logging your moments to see your weekly pulse.';
+    let trajectoryBadge = '🌱 Fresh Slate';
+    if (data.avg !== null) {
+      if (data.avg >= 7) {
+        trajectoryBadge = '📈 Upward Momentum';
+        trajectoryText = 'You navigated this period with noticeable lightness, resilience, and bright energy.';
+      } else if (data.avg >= 5) {
+        trajectoryBadge = '⚖️ Steady Balance';
+        trajectoryText = 'You maintained grounded equilibrium and held steady through the weekly ebb and flow.';
+      } else {
+        trajectoryBadge = '🌧️ Tender Week';
+        trajectoryText = 'It was a heavier stretch. Honor yourself for showing up and meeting each moment with patience.';
+      }
+    }
+
+    content.innerHTML = `
+      <div class="digest-step-title">The Emotional Pulse</div>
+      <div class="digest-step-sub">A high-level view of your rhythm over the ${state.type === 'weekly' ? 'past 7 days' : 'current month'}.</div>
+      
+      <div class="digest-stat-block" style="background:linear-gradient(135deg,rgba(124,58,237,0.14),rgba(13,148,136,0.1))">
+        <div style="font-size:2.8rem">🌊</div>
+        <div style="flex:1">
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);font-weight:700">Average Mood Score</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;color:var(--purple-light);line-height:1.1">
+            ${data.avg !== null ? `${data.avg}<span style="font-size:1.1rem;opacity:0.6">/10</span>` : '—'}
+          </div>
+          <div style="font-size:0.82rem;color:var(--teal-light);margin-top:0.25rem;font-weight:600">${trajectoryBadge}</div>
+        </div>
+      </div>
+
+      <div style="padding:1rem 1.25rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.88rem;color:var(--text);line-height:1.5;margin-bottom:1.5rem">
+        ${trajectoryText}
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem">Total reflections logged: <strong>${data.entriesCount}</strong></div>
+      </div>
+
+      <div class="digest-nav-row">
+        <button class="btn btn-ghost" onclick="closeReflectionDigest()">Exit</button>
+        <button class="btn btn-primary" onclick="nextDigestStep()">Continue: Bright Moments →</button>
+      </div>`;
+  } else if (stepNum === 2) {
+    // Step 2: Highlights
+    const b = data.best;
+    content.innerHTML = `
+      <div class="digest-step-title">Brightest Moments 🌟</div>
+      <div class="digest-step-sub">Re-visiting positive experiences trains the brain to notice and savor genuine joy.</div>
+      
+      ${b ? `
+        <div class="digest-stat-block" style="border-left:4px solid var(--teal-light)">
+          <div style="font-size:2.5rem">${b.emoji}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <span style="font-weight:700;font-size:1.1rem">${b.intensity}/10</span>
+              <span class="badge ${BADGE_CLASSES[b.category] || ''}">${getCategoryLabel(b.category)}</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto">${formatDate(b.datetime).date}</span>
+            </div>
+            <div style="font-size:0.9rem;margin-top:0.5rem;color:var(--text);font-style:italic">
+              "${escHtml(b.description || 'Felt joyful and content.')}"
+            </div>
+            ${b.copingActions?.length ? `<div style="font-size:0.75rem;color:var(--teal-light);margin-top:0.4rem">Supported by: ${b.copingActions.map(a => COPING_LABELS[a]).join(', ')}</div>` : ''}
+          </div>
+        </div>
+      ` : `
+        <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+          <p>No reflections recorded in this window yet.</p>
+        </div>
+      `}
+
+      <div style="font-size:0.84rem;color:var(--text-muted);line-height:1.5;margin-bottom:1.5rem">
+        💡 Take 10 seconds to remember the feeling behind this moment. Where were you? How did your body feel?
+      </div>
+
+      <div class="digest-nav-row">
+        <button class="btn btn-ghost" onclick="prevDigestStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextDigestStep()">Next: Toughest Moments →</button>
+      </div>`;
+  } else if (stepNum === 3) {
+    // Step 3: Toughest moments
+    const w = data.worst;
+    content.innerHTML = `
+      <div class="digest-step-title">Honoring Difficult Waves 🌦️</div>
+      <div class="digest-step-sub">Resilience isn't avoiding low moods — it's holding space for them with kindness and understanding.</div>
+      
+      ${w ? `
+        <div class="digest-stat-block" style="border-left:4px solid var(--orange-light)">
+          <div style="font-size:2.5rem">${w.emoji}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <span style="font-weight:700;font-size:1.1rem">${w.intensity}/10</span>
+              <span class="badge ${BADGE_CLASSES[w.category] || ''}">${getCategoryLabel(w.category)}</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto">${formatDate(w.datetime).date}</span>
+            </div>
+            <div style="font-size:0.9rem;margin-top:0.5rem;color:var(--text);font-style:italic">
+              "${escHtml(w.description || 'A challenging emotional moment.')}"
+            </div>
+            ${w.copingActions?.length ? `<div style="font-size:0.75rem;color:var(--orange-light);margin-top:0.4rem">You responded with: ${w.copingActions.map(a => COPING_LABELS[a]).join(', ')}</div>` : ''}
+          </div>
+        </div>
+      ` : `
+        <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+          <p>No low entries logged in this period.</p>
+        </div>
+      `}
+
+      <div style="padding:0.9rem 1.15rem;background:rgba(234,88,12,0.1);border:1px solid rgba(234,88,12,0.25);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text);line-height:1.5;margin-bottom:1.5rem">
+        🛡️ <strong>Gentle Reminder:</strong> You made it through every single hard moment this week. Tough feelings always pass.
+      </div>
+
+      <div class="digest-nav-row">
+        <button class="btn btn-ghost" onclick="prevDigestStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextDigestStep()">Next: Coping Superpowers →</button>
+      </div>`;
+  } else if (stepNum === 4) {
+    // Step 4: Coping superpowers
+    const copingList = data.rankedCoping;
+    content.innerHTML = `
+      <div class="digest-step-title">Your Coping Superpowers 🧘</div>
+      <div class="digest-step-sub">These actions scored highest on your personal "Did it help?" rating this week:</div>
+      
+      <div style="margin-bottom:1.5rem">
+        ${copingList && copingList.length ? copingList.slice(0, 3).map((c, idx) => `
+          <div class="digest-coping-rank-item">
+            <div style="display:flex;align-items:center;gap:0.75rem">
+              <span style="font-size:1.1rem;font-weight:700;color:var(--teal-light)">#${idx + 1}</span>
+              <div>
+                <div style="font-weight:600;font-size:0.92rem">${c.label}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted)">Used ${c.count} time${c.count > 1 ? 's' : ''}</div>
+              </div>
+            </div>
+            <div style="font-weight:700;color:var(--teal-light);font-size:0.95rem">
+              ${c.avgHelped}★ <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400">/5</span>
+            </div>
+          </div>
+        `).join('') : `
+          <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.88rem">
+            No coping actions tracked yet in this window. Try checking off what you did (walk, music, meditation) when you feel stressed!
+          </div>
+        `}
+      </div>
+
+      <div class="digest-nav-row">
+        <button class="btn btn-ghost" onclick="prevDigestStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextDigestStep()">Next: Set Intention →</button>
+      </div>`;
+  } else if (stepNum === 5) {
+    // Step 5: Setting Intention
+    content.innerHTML = `
+      <div class="digest-step-title">Mindful Intention 🎯</div>
+      <div class="digest-step-sub">What is one kind thought, healthy boundary, or focus you want to take into next week?</div>
+      
+      <div style="margin-bottom:1.25rem">
+        <textarea id="digestIntentionInput" class="form-textarea" placeholder="e.g. When work feels overwhelming, I will take a 5-minute walk outside instead of pushing through. I will protect my sleep on Thursday." style="min-height:120px">${escHtml(state.intention || '')}</textarea>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem">
+          🔒 This intention will be preserved directly in your private Journal.
+        </div>
+      </div>
+
+      <div class="digest-nav-row">
+        <button class="btn btn-ghost" onclick="prevDigestStep()">← Back</button>
+        <button class="btn btn-primary" onclick="saveDigestAndFinish()">Complete & Save Reflection ✨</button>
+      </div>`;
+  } else if (stepNum === 6) {
+    // Step 6: Celebration
+    content.innerHTML = `
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:3.5rem;margin-bottom:0.75rem">✨</div>
+        <div class="digest-step-title" style="font-size:1.6rem;margin-bottom:0.5rem">Review Complete!</div>
+        <p style="color:var(--text-muted);font-size:0.92rem;line-height:1.6;max-width:420px;margin:0 auto 1.5rem">
+          You've reflected with honesty and compassion. Your thoughts and weekly intention have been added to your Journal.
+        </p>
+
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;text-align:left;margin-bottom:1.75rem">
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--teal-light);font-weight:700;margin-bottom:0.35rem">Saved to Journal</div>
+          <div style="font-weight:700;font-size:1rem;margin-bottom:0.25rem">${state.periodTitle} &amp; Intention</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);font-style:italic">"${escHtml(state.intention || 'Mindful reflection completed.')}"</div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:center">
+          <a href="journal.html" class="btn btn-teal">📖 View in Journal</a>
+          <button class="btn btn-primary" onclick="closeReflectionDigest()">Back to Dashboard</button>
+        </div>
+      </div>`;
+  }
+}
+
+function nextDigestStep() {
+  if (window.digestState.step < window.digestState.totalSteps) {
+    renderDigestStep(window.digestState.step + 1);
+  }
+}
+
+function prevDigestStep() {
+  if (window.digestState.step > 1) {
+    renderDigestStep(window.digestState.step - 1);
+  }
+}
+
+function closeReflectionDigest() {
+  const modal = document.getElementById('reflectionDigestModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function saveDigestAndFinish() {
+  const input = document.getElementById('digestIntentionInput');
+  const intention = input ? input.value.trim() : '';
+  window.digestState.intention = intention;
+
+  // Save to Journal
+  const state = window.digestState;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const title = `${state.periodTitle} — ${dateStr}`;
+
+  const avgStr = state.data.avg !== null ? `${state.data.avg}/10` : '—';
+  const bestStr = state.data.best ? `${state.data.best.emoji} (${state.data.best.intensity}/10)` : 'None';
+  const worstStr = state.data.worst ? `${state.data.worst.emoji} (${state.data.worst.intensity}/10)` : 'None';
+  const topCopingStr = state.data.rankedCoping?.length ? state.data.rankedCoping[0].label : 'None logged';
+
+  const body = `### Summary of ${state.type === 'weekly' ? 'the Week' : 'the Month'}\n` +
+    `- **Average Mood**: ${avgStr}\n` +
+    `- **Highlights**: ${bestStr}\n` +
+    `- **Toughest Moments**: ${worstStr}\n` +
+    `- **Top Coping Superpower**: ${topCopingStr}\n\n` +
+    `### My Mindful Intention\n` +
+    `${intention || 'Stay curious, grounded, and kind to myself.'}`;
+
+  addJournalEntry({
+    title,
+    body,
+    datetime: now.toISOString()
+  });
+
+  localStorage.setItem('moodtrace_last_review', now.toISOString());
+  renderDigestStep(6);
+  if (typeof renderJournal === 'function') renderJournal();
 }
 
 // ─── MOOD TRIGGERS ANALYSIS ─────────────────────────────
@@ -2945,3 +3564,1104 @@ async function uploadMediaFiles(entryId) {
   
   return urls;
 }
+
+// ─── PIN & BIOMETRIC APP LOCK ────────────────────────────
+
+window._enteredPin = '';
+window._pinSetupStep = 1;
+window._pinSetupTemp = '';
+window._pinSetupInput = '';
+
+async function hashPin(pin, salt) {
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const enc = new TextEncoder();
+      const data = enc.encode(pin + ':' + salt);
+      const buffer = await window.crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {
+    console.warn('SubtleCrypto error, falling back:', e);
+  }
+  let hash = 0;
+  const str = pin + ':' + salt;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'mt_' + Math.abs(hash).toString(16);
+}
+
+function generatePinSalt() {
+  const arr = new Uint8Array(16);
+  if (window.crypto && window.crypto.getRandomValues) {
+    window.crypto.getRandomValues(arr);
+  } else {
+    for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function isBiometricsSupported() {
+  try {
+    if (window.PublicKeyCredential && 
+        typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    }
+  } catch (e) {
+    console.warn('Biometric support check error:', e);
+  }
+  return false;
+}
+
+async function registerBiometric() {
+  if (!window.PublicKeyCredential) throw new Error('Biometric authentication is not supported by your browser.');
+  const challenge = new Uint8Array(32);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(challenge);
+  const userId = new Uint8Array(16);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(userId);
+  
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: { name: "MoodTrace" },
+      user: {
+        id: userId,
+        name: "user@moodtrace.local",
+        displayName: "MoodTrace User"
+      },
+      pubKeyCredParams: [
+        { alg: -7, type: "public-key" },
+        { alg: -257, type: "public-key" }
+      ],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        userVerification: "required"
+      },
+      timeout: 60000
+    }
+  });
+
+  if (credential && credential.id) {
+    localStorage.setItem('moodtrace_lock_credential_id', credential.id);
+    localStorage.setItem('moodtrace_lock_biometric_enabled', 'true');
+    return true;
+  }
+  return false;
+}
+
+async function verifyBiometric() {
+  const credId = localStorage.getItem('moodtrace_lock_credential_id');
+  if (!credId || !window.PublicKeyCredential) return false;
+  
+  const challenge = new Uint8Array(32);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(challenge);
+  
+  let rawId;
+  try {
+    rawId = Uint8Array.from(atob(credId), c => c.charCodeAt(0));
+  } catch {
+    rawId = new TextEncoder().encode(credId);
+  }
+
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge,
+      allowCredentials: [{ id: rawId, type: 'public-key' }],
+      userVerification: "required",
+      timeout: 60000
+    }
+  });
+
+  return !!assertion;
+}
+
+function isAppLocked() {
+  if (localStorage.getItem('moodtrace_lock_enabled') !== 'true') return false;
+  if (sessionStorage.getItem('moodtrace_unlocked') !== 'true') return true;
+
+  const timeoutMin = parseInt(localStorage.getItem('moodtrace_lock_timeout') || '0', 10);
+  const lastActive = parseInt(sessionStorage.getItem('moodtrace_last_active') || '0', 10);
+  
+  if (timeoutMin > 0 && lastActive && (Date.now() - lastActive > timeoutMin * 60 * 1000)) {
+    sessionStorage.removeItem('moodtrace_unlocked');
+    return true;
+  }
+  return false;
+}
+
+function recordLockActivity() {
+  sessionStorage.setItem('moodtrace_last_active', String(Date.now()));
+}
+
+function showLockScreen() {
+  window._enteredPin = '';
+  let overlay = document.getElementById('appLockScreen');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'appLockScreen';
+    overlay.className = 'app-lock-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  const bioEnabled = localStorage.getItem('moodtrace_lock_biometric_enabled') === 'true';
+
+  overlay.innerHTML = `
+    <div class="app-lock-card" id="appLockCard">
+      <div class="app-lock-icon">🔒</div>
+      <div class="app-lock-title">MoodTrace Protected</div>
+      <div class="app-lock-sub">Enter your 4-digit PIN to unlock your private space</div>
+      
+      <div class="pin-dots-container" id="pinDotsWrap">
+        <div class="pin-dot" id="pinDot0"></div>
+        <div class="pin-dot" id="pinDot1"></div>
+        <div class="pin-dot" id="pinDot2"></div>
+        <div class="pin-dot" id="pinDot3"></div>
+      </div>
+
+      <div class="pin-error-msg" id="pinErrorMsg"></div>
+
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="enterLockDigit('1')">1</button>
+        <button class="pin-key" onclick="enterLockDigit('2')">2</button>
+        <button class="pin-key" onclick="enterLockDigit('3')">3</button>
+        <button class="pin-key" onclick="enterLockDigit('4')">4</button>
+        <button class="pin-key" onclick="enterLockDigit('5')">5</button>
+        <button class="pin-key" onclick="enterLockDigit('6')">6</button>
+        <button class="pin-key" onclick="enterLockDigit('7')">7</button>
+        <button class="pin-key" onclick="enterLockDigit('8')">8</button>
+        <button class="pin-key" onclick="enterLockDigit('9')">9</button>
+        ${bioEnabled ? `
+          <button class="pin-key ghost" onclick="handleLockBiometricClick()" title="Unlock with Biometrics" aria-label="Biometrics">🌿</button>
+        ` : `<div style="width:68px;height:68px"></div>`}
+        <button class="pin-key" onclick="enterLockDigit('0')">0</button>
+        <button class="pin-key ghost" onclick="deleteLockDigit()" title="Delete" aria-label="Delete">⌫</button>
+      </div>
+
+      ${bioEnabled ? `
+        <div style="margin-top:1.5rem">
+          <button class="btn btn-ghost" onclick="handleLockBiometricClick()" style="font-size:0.84rem;padding:0.4rem 1rem">
+            🌿 Unlock with Biometrics
+          </button>
+        </div>
+      ` : ''}
+
+      <div style="margin-top:1.5rem;font-size:0.75rem;color:var(--text-muted)">
+        Need help? <a href="#" onclick="handleForgotPin(event)" style="color:var(--purple-light);text-decoration:underline">Forgot PIN?</a>
+      </div>
+    </div>
+  `;
+
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  updatePinDots();
+
+  if (bioEnabled) {
+    setTimeout(() => {
+      handleLockBiometricClick();
+    }, 400);
+  }
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`pinDot${i}`);
+    if (dot) {
+      if (i < window._enteredPin.length) dot.classList.add('filled');
+      else dot.classList.remove('filled');
+    }
+  }
+}
+
+async function enterLockDigit(d) {
+  if (window._enteredPin.length >= 4) return;
+  window._enteredPin += d;
+  updatePinDots();
+  const errMsg = document.getElementById('pinErrorMsg');
+  if (errMsg) errMsg.textContent = '';
+
+  if (window._enteredPin.length === 4) {
+    const entered = window._enteredPin;
+    const storedHash = localStorage.getItem('moodtrace_lock_pin_hash');
+    const storedSalt = localStorage.getItem('moodtrace_lock_pin_salt') || '';
+    
+    const computedHash = await hashPin(entered, storedSalt);
+    if (computedHash === storedHash) {
+      unlockApp();
+    } else {
+      const card = document.getElementById('appLockCard');
+      if (card) {
+        card.classList.remove('pin-shake');
+        void card.offsetWidth;
+        card.classList.add('pin-shake');
+      }
+      if (errMsg) errMsg.textContent = 'Incorrect PIN. Please try again.';
+      setTimeout(() => {
+        window._enteredPin = '';
+        updatePinDots();
+      }, 400);
+    }
+  }
+}
+
+function deleteLockDigit() {
+  if (window._enteredPin.length > 0) {
+    window._enteredPin = window._enteredPin.slice(0, -1);
+    updatePinDots();
+  }
+  const errMsg = document.getElementById('pinErrorMsg');
+  if (errMsg) errMsg.textContent = '';
+}
+
+async function handleLockBiometricClick() {
+  const errMsg = document.getElementById('pinErrorMsg');
+  try {
+    const success = await verifyBiometric();
+    if (success) {
+      unlockApp();
+    }
+  } catch (e) {
+    console.warn('Biometric verify failed or cancelled:', e);
+    if (errMsg && e.name !== 'NotAllowedError') {
+      errMsg.textContent = 'Biometric verification unavailable. Use your PIN.';
+    }
+  }
+}
+
+function unlockApp() {
+  sessionStorage.setItem('moodtrace_unlocked', 'true');
+  sessionStorage.setItem('moodtrace_last_active', String(Date.now()));
+  const overlay = document.getElementById('appLockScreen');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+  document.body.style.overflow = '';
+}
+
+function lockAppNow() {
+  sessionStorage.removeItem('moodtrace_unlocked');
+  showLockScreen();
+}
+
+function handleForgotPin(e) {
+  e.preventDefault();
+  if (confirm("Forgot your PIN?\n\nTo protect your privacy, resetting your PIN requires confirming that you want to disable App Lock on this device. Your mood data will remain intact.\n\nDisable App Lock now?")) {
+    localStorage.removeItem('moodtrace_lock_enabled');
+    localStorage.removeItem('moodtrace_lock_pin_hash');
+    localStorage.removeItem('moodtrace_lock_pin_salt');
+    localStorage.removeItem('moodtrace_lock_biometric_enabled');
+    localStorage.removeItem('moodtrace_lock_credential_id');
+    unlockApp();
+    alert("App Lock has been disabled. You can set up a new PIN anytime in Settings.");
+    if (window.location.pathname.endsWith('settings.html')) {
+      location.reload();
+    }
+  }
+}
+
+function initAppLock() {
+  if (isAppLocked()) {
+    showLockScreen();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const overlay = document.getElementById('appLockScreen');
+    if (!overlay || overlay.style.display === 'none') return;
+
+    if (e.key >= '0' && e.key <= '9') {
+      enterLockDigit(e.key);
+    } else if (e.key === 'Backspace') {
+      deleteLockDigit();
+    }
+  });
+
+  const handleActivity = () => {
+    recordLockActivity();
+  };
+  ['mousemove', 'keydown', 'touchstart', 'click'].forEach(evt => {
+    window.addEventListener(evt, handleActivity, { passive: true });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      recordLockActivity();
+      const timeoutMin = parseInt(localStorage.getItem('moodtrace_lock_timeout') || '0', 10);
+      if (timeoutMin === 0 && localStorage.getItem('moodtrace_lock_enabled') === 'true') {
+        sessionStorage.removeItem('moodtrace_unlocked');
+      }
+    } else {
+      if (isAppLocked()) {
+        showLockScreen();
+      }
+    }
+  });
+}
+
+// ─── PIN SETUP IN SETTINGS ────────────────────────────────
+
+function openPinSetupModal() {
+  window._pinSetupStep = 1;
+  window._pinSetupTemp = '';
+  window._pinSetupInput = '';
+
+  let modal = document.getElementById('pinSetupModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'pinSetupModal';
+    modal.className = 'digest-modal-backdrop';
+    document.body.appendChild(modal);
+  }
+
+  renderPinSetupStep();
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePinSetupModal() {
+  const modal = document.getElementById('pinSetupModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function renderPinSetupStep() {
+  const modal = document.getElementById('pinSetupModal');
+  if (!modal) return;
+  const isConfirm = window._pinSetupStep === 2;
+
+  modal.innerHTML = `
+    <div class="digest-card" style="max-width:380px;text-align:center">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="digest-step-indicator">${isConfirm ? 'Step 2 of 2' : 'Step 1 of 2'}</div>
+        <button onclick="closePinSetupModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.3rem" aria-label="Close">✕</button>
+      </div>
+
+      <div class="app-lock-icon">${isConfirm ? '🔐' : '🔑'}</div>
+      <div class="digest-step-title" style="font-size:1.35rem">
+        ${isConfirm ? 'Confirm Your 4-Digit PIN' : 'Create a 4-Digit PIN'}
+      </div>
+      <div class="digest-step-sub" style="margin-bottom:1.5rem">
+        ${isConfirm ? 'Re-enter your PIN to verify.' : 'Choose a 4-digit code you can easily remember.'}
+      </div>
+
+      <div class="pin-dots-container">
+        <div class="pin-dot" id="setupPinDot0"></div>
+        <div class="pin-dot" id="setupPinDot1"></div>
+        <div class="pin-dot" id="setupPinDot2"></div>
+        <div class="pin-dot" id="setupPinDot3"></div>
+      </div>
+
+      <div class="pin-error-msg" id="setupPinError"></div>
+
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="enterSetupDigit('1')">1</button>
+        <button class="pin-key" onclick="enterSetupDigit('2')">2</button>
+        <button class="pin-key" onclick="enterSetupDigit('3')">3</button>
+        <button class="pin-key" onclick="enterSetupDigit('4')">4</button>
+        <button class="pin-key" onclick="enterSetupDigit('5')">5</button>
+        <button class="pin-key" onclick="enterSetupDigit('6')">6</button>
+        <button class="pin-key" onclick="enterSetupDigit('7')">7</button>
+        <button class="pin-key" onclick="enterSetupDigit('8')">8</button>
+        <button class="pin-key" onclick="enterSetupDigit('9')">9</button>
+        <div style="width:68px;height:68px"></div>
+        <button class="pin-key" onclick="enterSetupDigit('0')">0</button>
+        <button class="pin-key ghost" onclick="deleteSetupDigit()" title="Delete">⌫</button>
+      </div>
+    </div>
+  `;
+
+  updateSetupDots();
+}
+
+function updateSetupDots() {
+  const len = (window._pinSetupInput || '').length;
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`setupPinDot${i}`);
+    if (dot) {
+      if (i < len) dot.classList.add('filled');
+      else dot.classList.remove('filled');
+    }
+  }
+}
+
+async function enterSetupDigit(d) {
+  if (!window._pinSetupInput) window._pinSetupInput = '';
+  if (window._pinSetupInput.length >= 4) return;
+  window._pinSetupInput += d;
+  updateSetupDots();
+  const err = document.getElementById('setupPinError');
+  if (err) err.textContent = '';
+
+  if (window._pinSetupInput.length === 4) {
+    if (window._pinSetupStep === 1) {
+      window._pinSetupTemp = window._pinSetupInput;
+      window._pinSetupInput = '';
+      window._pinSetupStep = 2;
+      setTimeout(() => {
+        renderPinSetupStep();
+      }, 250);
+    } else {
+      if (window._pinSetupInput === window._pinSetupTemp) {
+        const salt = generatePinSalt();
+        const hash = await hashPin(window._pinSetupInput, salt);
+        localStorage.setItem('moodtrace_lock_pin_salt', salt);
+        localStorage.setItem('moodtrace_lock_pin_hash', hash);
+        localStorage.setItem('moodtrace_lock_enabled', 'true');
+        sessionStorage.setItem('moodtrace_unlocked', 'true');
+        sessionStorage.setItem('moodtrace_last_active', String(Date.now()));
+
+        closePinSetupModal();
+        alert('✅ 4-Digit PIN created and App Lock enabled!');
+        if (typeof renderAppLockSettings === 'function') renderAppLockSettings();
+      } else {
+        if (err) err.textContent = "PINs didn't match. Let's try again.";
+        setTimeout(() => {
+          window._pinSetupStep = 1;
+          window._pinSetupTemp = '';
+          window._pinSetupInput = '';
+          renderPinSetupStep();
+        }, 800);
+      }
+    }
+  }
+}
+
+function deleteSetupDigit() {
+  if (window._pinSetupInput && window._pinSetupInput.length > 0) {
+    window._pinSetupInput = window._pinSetupInput.slice(0, -1);
+    updateSetupDots();
+  }
+}
+
+async function renderAppLockSettings() {
+  const container = document.getElementById('appLockSettingsContainer');
+  if (!container) return;
+
+  const isEnabled = localStorage.getItem('moodtrace_lock_enabled') === 'true';
+  const bioEnabled = localStorage.getItem('moodtrace_lock_biometric_enabled') === 'true';
+  const timeout = localStorage.getItem('moodtrace_lock_timeout') || '0';
+  const bioAvailable = await isBiometricsSupported();
+
+  if (isEnabled) {
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:0.5rem">
+            <span>🔒 App Lock is Active</span>
+            <span style="font-size:0.75rem;padding:0.2rem 0.5rem;background:rgba(16,185,129,0.15);color:var(--teal-light);border-radius:100px;border:1px solid rgba(16,185,129,0.3)">Enabled</span>
+          </div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem">Your journal notes and mood data are protected on this device.</div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-ghost" onclick="openPinSetupModal()" style="font-size:0.82rem;padding:0.45rem 0.9rem">Change PIN</button>
+          <button class="btn btn-ghost" onclick="lockAppNow()" style="font-size:0.82rem;padding:0.45rem 0.9rem">🔒 Lock Now</button>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.9rem;border-top:1px solid var(--border);padding-top:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+          <div>
+            <div style="font-weight:500;font-size:0.88rem">Auto-Lock When Idle</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">Choose when the lock screen appears</div>
+          </div>
+          <select id="lockTimeoutSelect" class="form-input" style="padding:0.4rem 0.75rem;font-size:0.85rem;width:auto" onchange="handleLockTimeoutChange(this.value)">
+            <option value="0" ${timeout === '0' ? 'selected' : ''}>Immediately upon leaving / tab switch</option>
+            <option value="1" ${timeout === '1' ? 'selected' : ''}>After 1 minute of inactivity</option>
+            <option value="5" ${timeout === '5' ? 'selected' : ''}>After 5 minutes of inactivity</option>
+            <option value="15" ${timeout === '15' ? 'selected' : ''}>After 15 minutes of inactivity</option>
+          </select>
+        </div>
+
+        ${bioAvailable ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;border-top:1px solid var(--border);padding-top:0.9rem">
+            <div>
+              <div style="font-weight:500;font-size:0.88rem">🌿 Biometric Unlock</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">Unlock with Face ID, Fingerprint, or Windows Hello</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px">
+              <input type="checkbox" id="lockBioToggle" ${bioEnabled ? 'checked' : ''} onchange="handleBiometricToggle(this.checked)" style="opacity:0;width:0;height:0">
+              <span style="position:absolute;cursor:pointer;inset:0;background:${bioEnabled ? 'var(--purple)' : 'var(--surface2)'};border-radius:24px;transition:0.3s"></span>
+            </label>
+          </div>
+        ` : ''}
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;border-top:1px solid var(--border);padding-top:0.9rem">
+          <div>
+            <div style="font-weight:500;font-size:0.88rem;color:var(--pink-light)">Turn Off App Lock</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">Disable privacy lock on this device</div>
+          </div>
+          <button class="btn btn-ghost" onclick="disableAppLock()" style="border-color:var(--pink-light);color:var(--pink-light);font-size:0.82rem;padding:0.4rem 0.85rem">Turn Off</button>
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600;font-size:0.95rem">Protect with PIN &amp; Biometrics</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.25rem">Keep vulnerable thoughts, private journal notes, and history safe from curious eyes on shared devices.</div>
+        </div>
+        <button class="btn btn-teal" onclick="openPinSetupModal()">🔑 Enable App Lock</button>
+      </div>
+    `;
+  }
+}
+
+function handleLockTimeoutChange(val) {
+  localStorage.setItem('moodtrace_lock_timeout', val);
+}
+
+async function handleBiometricToggle(checked) {
+  if (checked) {
+    try {
+      const ok = await registerBiometric();
+      if (ok) {
+        alert('✅ Biometric authentication linked successfully!');
+      } else {
+        localStorage.removeItem('moodtrace_lock_biometric_enabled');
+      }
+    } catch (e) {
+      alert('Could not register biometrics: ' + (e.message || e));
+      localStorage.removeItem('moodtrace_lock_biometric_enabled');
+    }
+  } else {
+    localStorage.removeItem('moodtrace_lock_biometric_enabled');
+    localStorage.removeItem('moodtrace_lock_credential_id');
+  }
+  renderAppLockSettings();
+}
+
+function disableAppLock() {
+  if (confirm("Are you sure you want to turn off App Lock?")) {
+    localStorage.removeItem('moodtrace_lock_enabled');
+    localStorage.removeItem('moodtrace_lock_pin_hash');
+    localStorage.removeItem('moodtrace_lock_pin_salt');
+    localStorage.removeItem('moodtrace_lock_biometric_enabled');
+    localStorage.removeItem('moodtrace_lock_credential_id');
+    sessionStorage.removeItem('moodtrace_unlocked');
+    renderAppLockSettings();
+  }
+}
+
+// ─── CLINICAL / THERAPY PDF REPORT GENERATOR ─────────────
+
+function computeClinicalReportData(daysRange = 30) {
+  const allEntries = getEntries();
+  const now = new Date();
+  let entries = [];
+
+  if (daysRange === 'all' || daysRange >= 9999) {
+    entries = [...allEntries];
+  } else {
+    const cutoff = new Date(now.getTime() - daysRange * 24 * 60 * 60 * 1000);
+    entries = allEntries.filter(e => new Date(e.datetime) >= cutoff);
+  }
+
+  entries.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+  const total = entries.length;
+  if (!total) {
+    return {
+      entries,
+      totalCount: 0,
+      daysTracked: 0,
+      meanMood: 0,
+      sd: 0,
+      labilityText: 'Insufficient Data',
+      spectrum: { 
+        severe: { count: 0, pct: 0 }, 
+        mild: { count: 0, pct: 0 }, 
+        euthymic: { count: 0, pct: 0 }, 
+        elevated: { count: 0, pct: 0 } 
+      },
+      triggers: [],
+      copingEfficacy: [],
+      sleepAnalysis: { avgSleep: 0, delta: 0, hasData: false }
+    };
+  }
+
+  const uniqueDays = new Set(entries.map(e => new Date(e.datetime).toDateString())).size;
+
+  const scores = entries.map(e => e.intensity);
+  const mean = scores.reduce((a, b) => a + b, 0) / total;
+  const variance = scores.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / total;
+  const sd = Math.sqrt(variance);
+
+  let labilityText = 'Stable Affective Baseline';
+  if (sd > 2.0) {
+    labilityText = 'High Affective Lability (Elevated Fluctuations)';
+  } else if (sd >= 1.2) {
+    labilityText = 'Moderate Affective Variability';
+  }
+
+  let severeCount = 0, mildCount = 0, euthymicCount = 0, elevatedCount = 0;
+  entries.forEach(e => {
+    if (e.intensity <= 2) severeCount++;
+    else if (e.intensity <= 4) mildCount++;
+    else if (e.intensity <= 7) euthymicCount++;
+    else elevatedCount++;
+  });
+
+  const spectrum = {
+    severe: { count: severeCount, pct: Math.round((severeCount / total) * 100) },
+    mild: { count: mildCount, pct: Math.round((mildCount / total) * 100) },
+    euthymic: { count: euthymicCount, pct: Math.round((euthymicCount / total) * 100) },
+    elevated: { count: elevatedCount, pct: Math.round((elevatedCount / total) * 100) }
+  };
+
+  const catCount = {};
+  entries.forEach(e => {
+    const c = e.category || 'general';
+    catCount[c] = (catCount[c] || 0) + 1;
+  });
+  const triggers = Object.entries(catCount).map(([cat, cnt]) => ({
+    category: cat,
+    label: getCategoryLabel(cat),
+    count: cnt,
+    pct: Math.round((cnt / total) * 100)
+  })).sort((a, b) => b.count - a.count);
+
+  const copingMap = {};
+  entries.forEach(e => {
+    if (Array.isArray(e.copingActions)) {
+      e.copingActions.forEach(act => {
+        if (!copingMap[act]) copingMap[act] = { count: 0, helpedScores: [], moodScoresWith: [] };
+        copingMap[act].count++;
+        if (e.helped) copingMap[act].helpedScores.push(e.helped);
+        copingMap[act].moodScoresWith.push(e.intensity);
+      });
+    }
+  });
+
+  const copingEfficacy = Object.entries(copingMap).map(([act, d]) => {
+    const avgHelped = d.helpedScores.length ? +(d.helpedScores.reduce((a, b) => a + b, 0) / d.helpedScores.length).toFixed(1) : 0;
+    const avgWith = d.moodScoresWith.reduce((a, b) => a + b, 0) / d.moodScoresWith.length;
+    const entriesWithout = entries.filter(e => !e.copingActions?.includes(act));
+    const avgWithout = entriesWithout.length ? entriesWithout.map(e => e.intensity).reduce((a, b) => a + b, 0) / entriesWithout.length : mean;
+    const diffPct = Math.round(((avgWith - avgWithout) / avgWithout) * 100);
+
+    return {
+      action: act,
+      label: COPING_LABELS[act] || act,
+      count: d.count,
+      avgHelped,
+      avgWith: +avgWith.toFixed(1),
+      diffPct
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  const withSleep = entries.filter(e => typeof e.sleepHours === 'number' && e.sleepHours > 0);
+  let sleepAnalysis = { avgSleep: 0, delta: 0, goodAvg: 0, poorAvg: 0, hasData: false };
+  if (withSleep.length >= 2) {
+    const avgSleep = +(withSleep.reduce((a, b) => a + b.sleepHours, 0) / withSleep.length).toFixed(1);
+    const goodSleep = withSleep.filter(e => e.sleepHours >= 7);
+    const poorSleep = withSleep.filter(e => e.sleepHours < 7);
+    const goodAvg = goodSleep.length ? +(goodSleep.reduce((a, b) => a + b.intensity, 0) / goodSleep.length).toFixed(1) : 0;
+    const poorAvg = poorSleep.length ? +(poorSleep.reduce((a, b) => a + b.intensity, 0) / poorSleep.length).toFixed(1) : 0;
+    const delta = (goodAvg && poorAvg) ? Math.round(((goodAvg - poorAvg) / poorAvg) * 100) : 0;
+
+    sleepAnalysis = {
+      avgSleep,
+      goodAvg,
+      poorAvg,
+      delta,
+      hasData: true
+    };
+  }
+
+  return {
+    entries,
+    totalCount: total,
+    daysTracked: uniqueDays,
+    meanMood: +mean.toFixed(1),
+    sd: +sd.toFixed(2),
+    labilityText,
+    spectrum,
+    triggers,
+    copingEfficacy,
+    sleepAnalysis
+  };
+}
+
+function openClinicalReportModal() {
+  let modal = document.getElementById('clinicalReportModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'clinicalReportModal';
+    modal.className = 'clinical-modal-backdrop';
+    document.body.appendChild(modal);
+  }
+
+  const patientName = localStorage.getItem('moodtrace_user_name') || 'Anonymous Patient';
+
+  modal.innerHTML = `
+    <div class="clinical-modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:1rem">
+        <div>
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal-light)">Clinical Documentation</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem">Therapy &amp; Clinical PDF Report</div>
+        </div>
+        <button onclick="closeClinicalReportModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.3rem" aria-label="Close">✕</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;margin-top:1.25rem;background:var(--bg3);padding:1rem 1.25rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+        <div>
+          <label style="display:block;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.3rem">Timeframe</label>
+          <select id="clinicalTimeframeSelect" class="form-input" style="padding:0.45rem 0.75rem;font-size:0.85rem" onchange="renderClinicalPreview()">
+            <option value="7">Past 7 Days</option>
+            <option value="14" selected>Past 14 Days (Standard Therapy)</option>
+            <option value="30">Past 30 Days (Monthly Review)</option>
+            <option value="90">Past 90 Days (Quarterly)</option>
+            <option value="all">All Available History</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.3rem">Patient Identifier / Name</label>
+          <input type="text" id="clinicalPatientName" class="form-input" value="${escHtml(patientName)}" style="padding:0.45rem 0.75rem;font-size:0.85rem" oninput="renderClinicalPreview()">
+        </div>
+
+        <div>
+          <label style="display:block;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.3rem">Provider / Clinic (Optional)</label>
+          <input type="text" id="clinicalProviderName" class="form-input" placeholder="e.g. Dr. Jane Smith" style="padding:0.45rem 0.75rem;font-size:0.85rem" oninput="renderClinicalPreview()">
+        </div>
+
+        <div style="display:flex;align-items:center;padding-top:1.2rem">
+          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;cursor:pointer">
+            <input type="checkbox" id="clinicalIncludeNotes" checked onchange="renderClinicalPreview()">
+            <span>Include patient notes</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="clinical-preview-wrap" id="clinicalReportPreview">
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:1rem;gap:1rem;flex-wrap:wrap">
+        <div style="font-size:0.8rem;color:var(--text-muted)">
+          🔒 Formatted for direct medical and psychotherapeutic consultation.
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button class="btn btn-ghost" onclick="closeClinicalReportModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="generateAndPrintClinicalReport()">🖨️ Print / Save as PDF</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  renderClinicalPreview();
+}
+
+function closeClinicalReportModal() {
+  const modal = document.getElementById('clinicalReportModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function renderClinicalPreview() {
+  const preview = document.getElementById('clinicalReportPreview');
+  if (!preview) return;
+
+  const tf = document.getElementById('clinicalTimeframeSelect')?.value || '14';
+  const range = tf === 'all' ? 'all' : parseInt(tf, 10);
+  const patient = document.getElementById('clinicalPatientName')?.value.trim() || 'Anonymous Patient';
+  const provider = document.getElementById('clinicalProviderName')?.value.trim() || 'Licensed Healthcare Practitioner';
+  const includeNotes = document.getElementById('clinicalIncludeNotes')?.checked ?? true;
+
+  const data = computeClinicalReportData(range);
+  const html = buildClinicalDocumentHtml(data, patient, provider, tf, includeNotes);
+  preview.innerHTML = html;
+}
+
+function buildClinicalDocumentHtml(data, patient, provider, tfLabel, includeNotes) {
+  const genDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const periodText = tfLabel === 'all' ? 'Entire Recorded History' : `Past ${tfLabel} Days`;
+
+  return `
+    <div style="color:#0f172a;line-height:1.45;font-size:13px;max-width:760px;margin:0 auto">
+      <div style="border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#475569">CONFIDENTIAL HEALTHCARE RECORD</div>
+          <div style="font-size:20px;font-weight:800;color:#0f172a;letter-spacing:-0.5px">MoodTrace Clinical Affect &amp; Mood Report</div>
+          <div style="font-size:12px;color:#475569;margin-top:2px">Structured Diagnostic &amp; Therapy Summary</div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#334155">
+          <div><strong>Patient:</strong> ${escHtml(patient)}</div>
+          <div><strong>Provider:</strong> ${escHtml(provider)}</div>
+          <div><strong>Generated:</strong> ${genDate}</div>
+          <div><strong>Period:</strong> ${periodText}</div>
+        </div>
+      </div>
+
+      <div style="background:#f1f5f9;border:1px solid #cbd5e1;padding:8px 12px;border-radius:4px;font-size:10px;color:#475569;margin-bottom:16px;line-height:1.4">
+        ⚖️ <strong>CLINICAL NOTICE:</strong> This document compiles patient-recorded mood assessments, affective stability markers, and intervention outcomes. Prepared strictly for diagnostic, psychotherapeutic, and psychiatric review.
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:10px">
+          1. Affective Baseline &amp; Stability Metrics
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-bottom:12px">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px;text-align:center">
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;font-weight:600">Mean Mood Score</div>
+            <div style="font-size:22px;font-weight:800;color:#0f172a">${data.meanMood} <span style="font-size:11px;color:#64748b;font-weight:400">/ 10</span></div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">${data.meanMood >= 6 ? 'Positive Affect Range' : 'Depressed/Stressed Range'}</div>
+          </div>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px;text-align:center">
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;font-weight:600">Affective Lability (SD)</div>
+            <div style="font-size:22px;font-weight:800;color:#0f172a">±${data.sd}</div>
+            <div style="font-size:9px;font-weight:700;color:${data.sd > 2.0 ? '#b91c1c' : '#047857'}">${data.labilityText}</div>
+          </div>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px;text-align:center">
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;font-weight:600">Total Observations</div>
+            <div style="font-size:22px;font-weight:800;color:#0f172a">${data.totalCount}</div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">Across ${data.daysTracked} tracked day${data.daysTracked > 1 ? 's' : ''}</div>
+          </div>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px;text-align:center">
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;font-weight:600">Logging Frequency</div>
+            <div style="font-size:22px;font-weight:800;color:#0f172a">${data.daysTracked ? (data.totalCount / data.daysTracked).toFixed(1) : 0}</div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">entries / day</div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 14px;border-radius:6px">
+          <div style="font-size:11px;font-weight:700;color:#334155;margin-bottom:6px">Affect Spectrum Distribution:</div>
+          <div style="display:flex;height:12px;border-radius:4px;overflow:hidden;margin-bottom:8px;background:#e2e8f0">
+            <div style="width:${data.spectrum.severe.pct}%;background:#ef4444" title="Severe Low"></div>
+            <div style="width:${data.spectrum.mild.pct}%;background:#f97316" title="Mild Low"></div>
+            <div style="width:${data.spectrum.euthymic.pct}%;background:#10b981" title="Euthymic"></div>
+            <div style="width:${data.spectrum.elevated.pct}%;background:#6366f1" title="Elevated"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#475569;flex-wrap:wrap;gap:6px">
+            <span>🔴 Severe Low (1-2): <strong>${data.spectrum.severe.count}</strong> (${data.spectrum.severe.pct}%)</span>
+            <span>🟠 Mild Low (3-4): <strong>${data.spectrum.mild.count}</strong> (${data.spectrum.mild.pct}%)</span>
+            <span>🟢 Euthymic (5-7): <strong>${data.spectrum.euthymic.count}</strong> (${data.spectrum.euthymic.pct}%)</span>
+            <span>🟣 Elevated (8-10): <strong>${data.spectrum.elevated.count}</strong> (${data.spectrum.elevated.pct}%)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px;page-break-inside:avoid">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:10px">
+          2. Coping Intervention &amp; Action Efficacy Table
+        </div>
+
+        ${data.copingEfficacy && data.copingEfficacy.length ? `
+          <table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #e2e8f0">
+            <thead>
+              <tr style="background:#f1f5f9;color:#334155;text-align:left">
+                <th style="padding:6px 10px;border-bottom:1px solid #cbd5e1">Action / Modality</th>
+                <th style="padding:6px 10px;border-bottom:1px solid #cbd5e1">Usage Frequency</th>
+                <th style="padding:6px 10px;border-bottom:1px solid #cbd5e1">Helpfulness Rating (1-5★)</th>
+                <th style="padding:6px 10px;border-bottom:1px solid #cbd5e1">Mean Mood with Action</th>
+                <th style="padding:6px 10px;border-bottom:1px solid #cbd5e1">Calculated Mood Lift</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.copingEfficacy.map(c => `
+                <tr style="border-bottom:1px solid #f1f5f9">
+                  <td style="padding:6px 10px;font-weight:600;color:#0f172a">${c.label}</td>
+                  <td style="padding:6px 10px;color:#475569">${c.count} time${c.count > 1 ? 's' : ''}</td>
+                  <td style="padding:6px 10px;color:#0f172a">${c.avgHelped ? c.avgHelped + ' ★' : '—'}</td>
+                  <td style="padding:6px 10px;color:#475569">${c.avgWith}/10</td>
+                  <td style="padding:6px 10px;font-weight:700;color:${c.diffPct >= 0 ? '#047857' : '#b91c1c'}">
+                    ${c.diffPct >= 0 ? '+' : ''}${c.diffPct}%
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : `
+          <div style="padding:10px;font-size:11px;color:#64748b;font-style:italic">No coping interventions recorded during this period.</div>
+        `}
+      </div>
+
+      <div style="margin-bottom:18px;page-break-inside:avoid">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:10px">
+          3. Sleep &amp; Somatic Correlation
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px">
+            <div style="font-weight:700;font-size:11px;color:#0f172a;margin-bottom:4px">🛌 Sleep Duration Impact</div>
+            ${data.sleepAnalysis.hasData ? `
+              <div style="font-size:11px;color:#334155;line-height:1.4">
+                Average Sleep: <strong>${data.sleepAnalysis.avgSleep} hours</strong><br>
+                Days with ≥7h sleep average <strong>${data.sleepAnalysis.goodAvg}/10</strong> vs <strong>${data.sleepAnalysis.poorAvg}/10</strong> on &lt;7h nights.
+                <div style="margin-top:4px;font-weight:700;color:${data.sleepAnalysis.delta >= 0 ? '#047857' : '#b91c1c'}">
+                  Impact: ${data.sleepAnalysis.delta >= 0 ? '+' : ''}${data.sleepAnalysis.delta}% mood differential from sleep.
+                </div>
+              </div>
+            ` : `
+              <div style="font-size:11px;color:#64748b">Insufficient sleep data logged in this timeframe.</div>
+            `}
+          </div>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px;border-radius:6px">
+            <div style="font-weight:700;font-size:11px;color:#0f172a;margin-bottom:4px">📊 Primary Stressor Categories</div>
+            <div style="font-size:11px;color:#334155;line-height:1.4">
+              ${data.triggers.slice(0, 3).map(t => `
+                <div>• ${t.label}: <strong>${t.count}</strong> logs (${t.pct}%)</div>
+              `).join('') || '<span style="color:#64748b">No category data.</span>'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${includeNotes ? `
+        <div style="margin-bottom:20px;page-break-before:auto">
+          <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:10px">
+            4. Detailed Chronological Affect &amp; Notes Log
+          </div>
+
+          <table style="width:100%;border-collapse:collapse;font-size:10.5px;border:1px solid #e2e8f0">
+            <thead>
+              <tr style="background:#f1f5f9;color:#334155;text-align:left">
+                <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1;width:80px">Date/Time</th>
+                <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1;width:55px">Score</th>
+                <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1;width:75px">Trigger</th>
+                <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1;width:95px">Coping Action</th>
+                <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1">Patient Notes &amp; Observations</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.entries.slice(-25).map(e => {
+                const dt = formatDate(e.datetime);
+                const scoreColor = e.intensity <= 3 ? '#b91c1c' : e.intensity <= 5 ? '#d97706' : '#047857';
+                return `
+                  <tr style="border-bottom:1px solid #f1f5f9">
+                    <td style="padding:5px 8px;color:#475569">${dt.date}<br><span style="font-size:9px;color:#94a3b8">${dt.time}</span></td>
+                    <td style="padding:5px 8px;font-weight:700;color:${scoreColor}">${e.intensity}/10 ${e.emoji || ''}</td>
+                    <td style="padding:5px 8px;color:#334155">${getCategoryLabel(e.category)}</td>
+                    <td style="padding:5px 8px;color:#475569">${(e.copingActions || []).map(a => COPING_LABELS[a] || a).join(', ') || '—'}</td>
+                    <td style="padding:5px 8px;color:#0f172a;font-style:${e.description ? 'normal' : 'italic'}">${escHtml(e.description || '(No verbatim notes)')}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+          ${data.entries.length > 25 ? `
+            <div style="font-size:10px;color:#64748b;margin-top:4px;text-align:right">
+              Showing recent 25 of ${data.entries.length} entries for clinical brevity.
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <div style="margin-top:24px;border-top:2px dashed #94a3b8;padding-top:16px;page-break-inside:avoid">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;margin-bottom:8px">
+          5. Clinician Consultation &amp; Treatment Plan Notes
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-bottom:12px">
+          For the attending therapist or medical provider to document observations, therapeutic interventions, or medication adjustments:
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div style="border:1px solid #cbd5e1;border-radius:4px;height:70px;padding:6px;font-size:10px;color:#94a3b8">
+            Mental Status Exam (MSE) &amp; Clinical Impressions:
+          </div>
+          <div style="border:1px solid #cbd5e1;border-radius:4px;height:70px;padding:6px;font-size:10px;color:#94a3b8">
+            Treatment Plan Modifications / Medication Changes:
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;color:#334155;padding-top:12px">
+          <div>Clinician Signature: ___________________________</div>
+          <div>Date: ________________</div>
+          <div>Next Appointment: ________________</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between;font-size:9.5px;color:#64748b">
+        <span>MoodTrace Clinical Health Suite • Client-Side Secure Export</span>
+        <span>Page 1 of 1 • Strictly Confidential</span>
+      </div>
+    </div>
+  `;
+}
+
+function generateAndPrintClinicalReport() {
+  const tf = document.getElementById('clinicalTimeframeSelect')?.value || '14';
+  const range = tf === 'all' ? 'all' : parseInt(tf, 10);
+  const patient = document.getElementById('clinicalPatientName')?.value.trim() || 'Anonymous Patient';
+  const provider = document.getElementById('clinicalProviderName')?.value.trim() || 'Licensed Healthcare Practitioner';
+  const includeNotes = document.getElementById('clinicalIncludeNotes')?.checked ?? true;
+
+  const data = computeClinicalReportData(range);
+  const bodyHtml = buildClinicalDocumentHtml(data, patient, provider, tf, includeNotes);
+
+  const printWindow = window.open('', '_blank', 'width=900,height=800');
+  if (!printWindow) {
+    alert("Please allow popups to open the printable PDF report.");
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>MoodTrace Clinical Report — ${escHtml(patient)}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 12mm 15mm 15mm 15mm;
+        }
+        body {
+          margin: 0;
+          padding: 20px;
+          background: #ffffff !important;
+          color: #0f172a !important;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        @media print {
+          body { padding: 0; }
+          .no-print { display: none !important; }
+        }
+        button.print-bar-btn {
+          background: #0f172a;
+          color: #fff;
+          border: none;
+          padding: 10px 18px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:12px 20px;margin:-20px -20px 20px -20px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#334155;font-weight:600">🖨️ Ready to Print / Save as PDF</span>
+        <button class="print-bar-btn" onclick="window.print()">Print Document</button>
+      </div>
+      ${bodyHtml}
+      <script>
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            window.print();
+          }, 350);
+        });
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+// Auto initialize App Lock on all pages
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAppLock);
+} else {
+  initAppLock();
+}
+

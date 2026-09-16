@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MoodTrace – Dashboard</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
   <meta name="theme-color" content="#7C3AED">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -16,8 +17,9 @@
 <div class="ambient ambient-3"></div>
 
 <!-- ─── ONBOARDING MODAL ─── -->
-<div id="onboardingModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:2.5rem;max-width:440px;width:100%;text-align:center;margin:auto">
+<div id="onboardingModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto" onclick="if(event.target===this)finishOnboarding()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:2.5rem;max-width:440px;width:100%;text-align:center;margin:auto;position:relative">
+    <button onclick="finishOnboarding()" style="position:absolute;top:1rem;right:1.1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.25rem;line-height:1;transition:color 0.2s" title="Skip onboarding" aria-label="Skip">✕</button>
 
     <div id="onboardStep1" class="onboarding-step">
       <div style="font-size:2.5rem;margin-bottom:0.75rem">👋</div>
@@ -42,9 +44,12 @@
 
     <div id="onboardStep4" class="onboarding-step" style="display:none">
       <div style="font-size:2.5rem;margin-bottom:0.75rem">✨</div>
-      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Get a daily AI message</h2>
-      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Every day, your dashboard shows a personalised message based on your mood entries — warm, honest, and just for you.</p>
-      <button class="btn btn-primary" style="width:100%" onclick="finishOnboarding()">Let's go! 🚀</button>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem">Ready to begin your journey?</h2>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:1.25rem;font-size:0.9rem">Sign in to securely sync your moods and reflections across all your devices, or explore first in offline guest mode.</p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="finishOnboardingAndLogin()">Sign In or Create Account →</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="finishOnboardingGuest()">Continue as Guest 🚀</button>
+      </div>
     </div>
 
   </div>
@@ -105,107 +110,149 @@
   </div>
 </div>
 
-<nav>
+<nav class="top-nav">
   <div class="nav-inner">
-    <div class="logo">Mood<span>Trace</span></div>
+    <a href="index.html" class="logo"><img src="moodtrace-logo.svg" alt="MoodTrace" class="logo-icon">Mood<span>Trace</span></a>
     <ul class="nav-links">
       <li><a href="index.html" class="active"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
       <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
       <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="journal.html"><span class="nav-icon">📓</span><span class="label">Journal</span></a></li>
       <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
-      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
       <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
       <li><a href="settings.html"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="profile.html"><span class="nav-icon">👤</span><span class="label">Profile</span></a></li>
     </ul>
-    <button id="themeToggle" onclick="toggleTheme()" title="Toggle theme" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+    <div style="display:flex;align-items:center;gap:0.6rem">
+      <a href="profile.html" class="nav-profile-pill" id="navProfileBtn" title="Account & Profile">
+        <span class="nav-profile-avatar" id="navProfileAvatar">👤</span>
+        <span class="nav-profile-name" id="navProfileName">Profile</span>
+      </a>
+      <button id="themeToggle" class="nav-theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    </div>
   </div>
 </nav>
 
 <!-- ─── BOTTOM NAV (mobile only) ─── -->
-<nav class="bottom-nav">
+<nav class="bottom-nav" aria-label="Mobile navigation">
   <ul>
     <li><a href="index.html" class="active"><span class="bn-icon">🏠</span>Home</a></li>
     <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
     <li><a href="history.html"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="journal.html"><span class="bn-icon">📓</span>Journal</a></li>
     <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
-    <li><a href="monthly.html"><span class="bn-icon">📅</span>Summary</a></li>
+    <li><a href="profile.html"><span class="bn-icon">👤</span>Profile</a></li>
   </ul>
 </nav>
 
 <div class="container">
 
-  <div class="page-header">
+  <div class="page-header" style="margin-bottom:1.5rem">
     <div class="page-tag">📍 Today — <span id="todayLabel"></span></div>
-    <h1 class="page-title">Your <span class="accent-purple">Mood</span> at a Glance</h1>
-    <p class="page-subtitle">Here's a snapshot of how you've been feeling lately.</p>
+    <h1 class="page-title">Your <span class="accent-purple">Mindful</span> Space</h1>
+    <p class="page-subtitle">Track your emotions, uncover quiet patterns, and nurture your wellbeing.</p>
   </div>
 
-  <!-- Welcome banner -->
-  <div class="welcome-banner">
-    <div class="welcome-emoji">👋</div>
-    <div class="welcome-text">
-      <h2 id="welcomeMsg">Good to see you!</h2>
-      <p id="welcomeSub">Start logging your mood to see your insights here.</p>
+  <!-- Mindful Hero Banner -->
+  <div class="dashboard-hero">
+    <div class="dashboard-hero-content">
+      <div class="dashboard-hero-avatar">🌿</div>
+      <div class="dashboard-hero-text">
+        <h2 id="welcomeMsg">Good to see you!</h2>
+        <p id="welcomeSub">Start logging your mood to see your insights here.</p>
+      </div>
     </div>
-    <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem">
+    <div class="hero-actions">
       <a href="add-entry.html" class="btn btn-primary">+ Log Mood</a>
-      <span id="todayLogCount" style="font-size:0.75rem;color:var(--text-muted)"></span>
+      <span id="todayLogCount" class="today-pill">Not logged today</span>
     </div>
   </div>
+
+  <!-- Check-in Prompt Card (populated by app.js when not logged today) -->
+  <div id="checkinPromptCard" style="display:none;margin-bottom:1.5rem" class="card"></div>
 
   <!-- AI Message Card -->
-  <div id="aiMessageCard" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(13,148,136,0.08));border:1px solid rgba(124,58,237,0.25);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem"></div>
+  <div id="aiMessageCard" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(13,148,136,0.08));border:1px solid rgba(167,139,250,0.25);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem"></div>
 
-  <!-- Stat Cards Row 1 -->
-  <div class="grid-3 section-gap">
-    <div class="card stat-card purple">
-      <div class="stat-icon purple">😊</div>
-      <div class="stat-label">Average Mood</div>
-      <div class="stat-value purple" id="statAvgMood">—<span style="font-size:1rem;opacity:0.6">/10</span></div>
-      <div class="stat-sub" id="statAvgSub">No entries yet</div>
+  <!-- Reflection Digest Banner (Sunday Review prompt) -->
+  <div id="reflectionDigestBanner" style="display:none"></div>
+
+  <!-- Intelligent Pattern Alerts Container -->
+  <div id="patternAlertsSection"></div>
+
+  <!-- Consolidated Metric Grid -->
+  <div class="metric-split-grid section-gap">
+    <!-- Left: Wellbeing & Core Average -->
+    <div class="card wellbeing-hero-card">
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+        <div class="mood-ring"></div>
+        <div class="mood-ring-label" style="font-size:0.95rem;margin-top:0.25rem">Wellbeing Pulse</div>
+        <div class="mood-ring-sub" id="statWellbeing">Log entries to see</div>
+      </div>
+      <div class="wellbeing-hero-details">
+        <div class="stat-label">Average Mood Score</div>
+        <div class="stat-value purple" id="statAvgMood" style="font-size:2.4rem;margin:0.25rem 0">—<span style="font-size:1.1rem;opacity:0.6">/10</span></div>
+        <div class="stat-sub" id="statAvgSub">No entries yet</div>
+        <div style="margin-top:1rem;display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.75rem;border-radius:100px;background:rgba(124,58,237,0.12);border:1px solid rgba(167,139,250,0.25);font-size:0.8rem;color:var(--purple-light)">
+          <span id="statStreakSub">No streak yet</span>
+        </div>
+      </div>
     </div>
-    <div class="card stat-card teal">
-      <div class="stat-icon teal">📅</div>
-      <div class="stat-label">Entries This Month</div>
-      <div class="stat-value teal" id="statEntryCount">0</div>
-      <div class="stat-sub" id="statStreakSub">No streak yet</div>
-    </div>
-    <div class="card stat-card orange">
-      <div class="stat-icon orange">⚠️</div>
-      <div class="stat-label">Worst Day</div>
-      <div class="stat-value orange" id="statWorstDay">—</div>
-      <div class="stat-sub" id="statWorstSub">No entries yet</div>
+
+    <!-- Right: Balanced Sub-Stats (Best Day, Toughest Day, Top Trigger, Entries) -->
+    <div class="substat-grid">
+      <div class="substat-box">
+        <div class="substat-header">
+          <span class="substat-label">Best Day</span>
+          <span class="substat-icon">🏆</span>
+        </div>
+        <div class="substat-val" id="statBestDay" style="color:var(--teal-light)">—</div>
+        <div class="substat-sub" id="statBestSub">No entries yet</div>
+      </div>
+
+      <div class="substat-box">
+        <div class="substat-header">
+          <span class="substat-label">Toughest Day</span>
+          <span class="substat-icon">🌦️</span>
+        </div>
+        <div class="substat-val" id="statWorstDay" style="color:var(--orange-light)">—</div>
+        <div class="substat-sub" id="statWorstSub">No entries yet</div>
+      </div>
+
+      <div class="substat-box">
+        <div class="substat-header">
+          <span class="substat-label">Top Focus</span>
+          <span class="substat-icon">🔁</span>
+        </div>
+        <div class="substat-val" id="statTopIssue" style="color:var(--pink-light)">—</div>
+        <div class="substat-sub" id="statTopIssueSub">No entries yet</div>
+      </div>
+
+      <div class="substat-box">
+        <div class="substat-header">
+          <span class="substat-label">This Month</span>
+          <span class="substat-icon">📅</span>
+        </div>
+        <div class="substat-val" id="statEntryCount" style="color:var(--purple-light)">0</div>
+        <div class="substat-sub">Logged reflections</div>
+      </div>
     </div>
   </div>
 
-  <!-- Stat Cards Row 2 -->
-  <div class="grid-3 section-gap">
-    <div class="card stat-card pink">
-      <div class="stat-icon pink">🔁</div>
-      <div class="stat-label">Top Issue</div>
-      <div class="stat-value pink" id="statTopIssue" style="font-size:1.4rem">—</div>
-      <div class="stat-sub" id="statTopIssueSub">No entries yet</div>
-    </div>
-    <div class="card mood-ring-card">
-      <div class="mood-ring"></div>
-      <div class="mood-ring-label">Overall Wellbeing</div>
-      <div class="mood-ring-sub" id="statWellbeing">Log entries to see</div>
-    </div>
-    <div class="card stat-card teal">
-      <div class="stat-icon teal">🏆</div>
-      <div class="stat-label">Best Day</div>
-      <div class="stat-value teal" id="statBestDay" style="font-size:1.4rem">—</div>
-      <div class="stat-sub" id="statBestSub">No entries yet</div>
-    </div>
-  </div>
+  <!-- Weekly Snapshot Card (populated by app.js) -->
+  <div id="weeklySummaryCard" class="card section-gap" style="padding:1.5rem"></div>
 
   <!-- Recent Entries -->
   <div class="section-gap">
-    <div class="section-title">Recent Entries</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div class="section-title" style="margin-bottom:0">Recent Reflections</div>
+      <a href="history.html" style="color:var(--purple-light);font-size:0.85rem;text-decoration:none;font-weight:600">View All History →</a>
+    </div>
     <div id="recentEntries">
-      <div style="text-align:center;padding:2rem;color:var(--text-muted)">
-        <div style="font-size:2rem;margin-bottom:0.5rem">📭</div>
-        <p>No entries yet. <a href="add-entry.html" style="color:var(--purple-light)">Add your first one!</a></p>
+      <div style="text-align:center;padding:2.5rem 1rem;color:var(--text-muted);background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius)">
+        <div style="font-size:2.2rem;margin-bottom:0.5rem">🌱</div>
+        <p style="font-size:0.95rem">No entries yet. <a href="add-entry.html" style="color:var(--purple-light);font-weight:600">Log your first reflection!</a></p>
       </div>
     </div>
   </div>
@@ -215,15 +262,22 @@
     <div id="goalsSection"></div>
   </div>
 
-  <div class="quick-actions">
-    <a href="add-entry.html"  class="btn btn-primary">✏️ Add Entry</a>
-    <a href="history.html"    class="btn btn-teal">📋 History</a>
-    <a href="analytics.html"  class="btn btn-orange">📊 Analytics</a>
-    <a href="insights.html"   class="btn btn-ghost">💡 Insights</a>
-    <a href="monthly.html"    class="btn btn-ghost">📅 Summary</a>
-    <a href="settings.html"   class="btn btn-ghost">⚙️ Settings</a>
-    <button class="btn btn-ghost" onclick="generateShareCard()">🖼️ Share Card</button>
-    <button class="btn btn-ghost" onclick="exportCSV()">📤 Export</button>
+  <!-- Quick Actions & Utilities -->
+  <div style="margin-top:1.5rem">
+    <div class="section-title">Quick Actions</div>
+    <div class="quick-actions" style="margin-top:0.75rem">
+      <a href="add-entry.html"  class="btn btn-primary">✏️ Add Entry</a>
+      <button class="btn btn-teal" onclick="openReflectionDigest('weekly')">✨ Weekly Review</button>
+      <a href="history.html"    class="btn btn-teal">📋 History</a>
+      <a href="journal.html"    class="btn btn-ghost">📓 Journal</a>
+      <a href="analytics.html"  class="btn btn-orange">📊 Analytics</a>
+      <a href="insights.html"   class="btn btn-ghost">💡 Insights</a>
+      <a href="monthly.html"    class="btn btn-ghost">📅 Summary</a>
+      <a href="settings.html"   class="btn btn-ghost">⚙️ Settings</a>
+      <button class="btn btn-ghost" onclick="openClinicalReportModal()">📑 Clinical PDF</button>
+      <button class="btn btn-ghost" onclick="generateShareCard()">🖼️ Share Card</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">📤 Export</button>
+    </div>
   </div>
 
   <!-- Reminder toggle -->
@@ -241,6 +295,20 @@
 
 </div>
 
+<!-- ─── GUIDED REFLECTION DIGEST WIZARD MODAL ─── -->
+<div id="reflectionDigestModal" class="digest-modal-backdrop" style="display:none">
+  <div class="digest-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div id="digestStepBadge" class="digest-step-indicator">Step 1 of 6</div>
+      <button onclick="closeReflectionDigest()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.3rem;line-height:1;transition:color 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'" aria-label="Close review">✕</button>
+    </div>
+    <div class="digest-progress-bar">
+      <div id="digestProgressBar" class="digest-progress-fill" style="width: 16.6%"></div>
+    </div>
+    <div id="digestStepContent"></div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -248,6 +316,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="storage.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script src="init-dashboard.js"></script>
 <script>

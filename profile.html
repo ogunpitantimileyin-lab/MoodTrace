@@ -1,0 +1,585 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoodTrace – Profile</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
+  <meta name="theme-color" content="#7C3AED">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .profile-header-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .profile-avatar-wrap {
+      position: relative;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
+      cursor: pointer;
+      user-select: none;
+    }
+    .profile-avatar-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .profile-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .profile-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.45rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .profile-email {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 0.6rem;
+    }
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .profile-badge.cloud {
+      background: rgba(13, 148, 136, 0.15);
+      border: 1px solid var(--teal);
+      color: var(--teal-light);
+    }
+    .profile-badge.guest {
+      background: rgba(234, 88, 12, 0.15);
+      border: 1px solid var(--orange);
+      color: var(--orange-light);
+    }
+    .profile-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .profile-stat-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+    .profile-stat-val {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: var(--purple-light);
+      margin-bottom: 0.2rem;
+    }
+    .profile-stat-lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .guest-alert-banner {
+      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(13,148,136,0.12));
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .emoji-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.6rem;
+      margin: 1rem 0;
+    }
+    .emoji-pick-btn {
+      font-size: 1.6rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .emoji-pick-btn:hover {
+      transform: scale(1.15);
+      border-color: var(--purple-light);
+    }
+  </style>
+</head>
+<body data-page="profile">
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- ─── TOP NAV ─── -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><img src="moodtrace-logo.svg" alt="MoodTrace" class="logo-icon">Mood<span>Trace</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
+      <li><a href="history.html"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="journal.html"><span class="nav-icon">📓</span><span class="label">Journal</span></a></li>
+      <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
+      <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+      <li><a href="settings.html"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="profile.html" class="active"><span class="nav-icon">👤</span><span class="label">Profile</span></a></li>
+    </ul>
+    <div style="display:flex;align-items:center;gap:0.6rem">
+      <a href="profile.html" class="nav-profile-pill" id="navProfileBtn" title="Account & Profile">
+        <span class="nav-profile-avatar" id="navProfileAvatar">👤</span>
+        <span class="nav-profile-name" id="navProfileName">Profile</span>
+      </a>
+      <button id="themeToggle" class="nav-theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── MOBILE BOTTOM NAV ─── -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+  <ul>
+    <li><a href="index.html"><span class="bn-icon">🏠</span>Home</a></li>
+    <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
+    <li><a href="history.html"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="journal.html"><span class="bn-icon">📓</span>Journal</a></li>
+    <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
+    <li><a href="profile.html" class="active"><span class="bn-icon">👤</span>Profile</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'" style="padding:0.45rem 0.85rem;font-size:0.85rem">← Back</button>
+      <div class="page-tag">👤 Account &amp; Identity</div>
+    </div>
+    <h1 class="page-title">Personal <span class="accent-purple">Profile</span></h1>
+    <p class="page-subtitle">Manage your credentials, cloud sync across your devices, and mindful stats.</p>
+  </div>
+
+  <!-- Guest Mode Warning Banner (if guest) -->
+  <div id="guestWarningBanner" class="guest-alert-banner" style="display:none">
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;font-family:'Syne',sans-serif;margin-bottom:0.25rem">
+        ☁️ Back up your mood journey to the cloud
+      </div>
+      <div style="font-size:0.86rem;color:var(--text-muted);line-height:1.5">
+        You are currently in local Guest Mode. Create or connect an account to sync your history across your phone, tablet, and laptop.
+      </div>
+    </div>
+    <a href="login.html" class="btn btn-primary" style="white-space:nowrap">Sign In / Join →</a>
+  </div>
+
+  <!-- Profile Identity Card -->
+  <div class="profile-header-card">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar" id="profileBigAvatar" onclick="openAvatarModal()" title="Click to change avatar">🌿</div>
+      <div class="profile-avatar-badge" onclick="openAvatarModal()" title="Change avatar">✏️</div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name">
+        <span id="profileDisplayName">Guest Explorer</span>
+        <span id="profileStatusBadge" class="profile-badge guest">Guest Mode</span>
+      </div>
+      <div class="profile-email" id="profileEmailDisplay">Stored locally on this browser</div>
+      <div style="font-size:0.8rem;color:var(--text-muted)">
+        Member status: <span id="profileMemberSince" style="color:var(--text)">Active Session</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="openEditNameModal()">✏️ Edit Name</button>
+      <button id="authActionBtn" class="btn btn-primary" onclick="handleAuthButtonClick()">Sign In</button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="profile-stats-grid">
+    <div class="profile-stat-box">
+      <div class="profile-stat-val" id="statTotalEntries">0</div>
+      <div class="profile-stat-lbl">Check-ins</div>
+    </div>
+    <div class="profile-stat-box">
+      <div class="profile-stat-val" id="statStreak">0</div>
+      <div class="profile-stat-lbl">Day Streak</div>
+    </div>
+    <div class="profile-stat-box">
+      <div class="profile-stat-val" id="statTopEmoji">😐</div>
+      <div class="profile-stat-lbl">Top Emotion</div>
+    </div>
+    <div class="profile-stat-box">
+      <div class="profile-stat-val" id="statJournalNotes">0</div>
+      <div class="profile-stat-lbl">Journal Entries</div>
+    </div>
+  </div>
+
+  <!-- Cloud Sync & Backup Card -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">
+      <div class="section-title" style="margin-bottom:0">Cloud Sync &amp; Backup</div>
+      <span id="cloudSyncStatusPill" class="profile-badge cloud" style="display:none">☁️ Connected</span>
+    </div>
+    <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5">
+      Your mood logs and journal reflections are safely backed up so you never lose them when switching phones, computers, or clearing browser cookies.
+    </p>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
+      <div>
+        <div style="font-weight:600;font-size:0.92rem" id="syncStatusTitle">Cloud Sync Ready</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)" id="lastSyncedText">Last synced: checking...</div>
+      </div>
+      <button id="syncNowBtn" class="btn btn-teal" onclick="handleSyncNow()">🔄 Sync Now</button>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="exportJSON()">💾 Export JSON Backup</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">📤 Export CSV</button>
+      <button class="btn btn-ghost" onclick="openClinicalReportModal()">📑 Clinical PDF</button>
+    </div>
+  </div>
+
+  <!-- Security & Session Card -->
+  <div class="card section-gap" style="padding:1.75rem">
+    <div class="section-title">Security &amp; Session</div>
+    <div style="display:flex;flex-direction:column;gap:1rem;margin-top:0.75rem">
+      
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem" id="pwdResetRow">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Password Security</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Send a password reset email to change your password</div>
+        </div>
+        <button class="btn btn-ghost" onclick="handleSendPasswordReset()">Send Reset Link</button>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div>
+          <div style="font-weight:500;font-size:0.9rem">Active Session</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Sign out of your MoodTrace account on this device</div>
+        </div>
+        <button id="logoutBtn" class="btn btn-ghost" onclick="handleLogout()" style="color:var(--pink-light);border-color:rgba(219,39,119,0.3)">
+          🚪 Sign Out
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── EDIT NAME MODAL ─── -->
+<div id="editNameModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:380px;width:100%;position:relative">
+    <button onclick="closeEditNameModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;margin-bottom:0.5rem">Edit Your Name</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem">How would you like MoodTrace to address you?</p>
+    <input type="text" id="newNameInput" class="form-input" style="margin-bottom:1rem" placeholder="e.g. Maya Lin">
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveNewName()">Save</button>
+      <button class="btn btn-ghost" onclick="closeEditNameModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── AVATAR PICKER MODAL ─── -->
+<div id="avatarModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:400px;width:100%;position:relative;text-align:center">
+    <button onclick="closeAvatarModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;margin-bottom:0.35rem">Choose Your Avatar</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem">Pick an emoji avatar that represents your mindful spirit.</p>
+    <div class="emoji-picker-grid">
+      <button class="emoji-pick-btn" onclick="selectAvatar('🌿')">🌿</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('✨')">✨</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🧘')">🧘</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🌟')">🌟</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🌸')">🌸</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🦁')">🦁</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🦊')">🦊</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🕊️')">🕊️</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🚀')">🚀</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('💡')">💡</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('🥑')">🥑</button>
+      <button class="emoji-pick-btn" onclick="selectAvatar('☕')">☕</button>
+    </div>
+    <button class="btn btn-ghost" onclick="closeAvatarModal()" style="width:100%">Cancel</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+
+<script>
+  function renderProfile() {
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    const isGuest = !user;
+
+    const bigAvatarEl   = document.getElementById('profileBigAvatar');
+    const nameEl        = document.getElementById('profileDisplayName');
+    const emailEl       = document.getElementById('profileEmailDisplay');
+    const badgeEl       = document.getElementById('profileStatusBadge');
+    const memberEl      = document.getElementById('profileMemberSince');
+    const authBtn       = document.getElementById('authActionBtn');
+    const guestBanner   = document.getElementById('guestWarningBanner');
+    const pwdRow        = document.getElementById('pwdResetRow');
+    const logoutBtn     = document.getElementById('logoutBtn');
+    const syncPill      = document.getElementById('cloudSyncStatusPill');
+    const syncTitle     = document.getElementById('syncStatusTitle');
+    const lastSyncEl    = document.getElementById('lastSyncedText');
+
+    // Saved avatar
+    const customAvatar = localStorage.getItem('moodtrace_user_avatar');
+
+    if (user) {
+      guestBanner.style.display = 'none';
+      syncPill.style.display = 'inline-flex';
+      pwdRow.style.display = 'flex';
+      logoutBtn.style.display = 'inline-flex';
+      
+      const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Mindful Friend');
+      nameEl.textContent = displayName;
+      emailEl.textContent = user.email || 'Cloud Account';
+      badgeEl.textContent = '☁️ Cloud Account';
+      badgeEl.className = 'profile-badge cloud';
+      authBtn.textContent = 'Switch / Re-login';
+      authBtn.className = 'btn btn-ghost';
+      syncTitle.textContent = '☁️ Connected to Cloud';
+
+      if (customAvatar) {
+        bigAvatarEl.textContent = customAvatar;
+      } else if (user.displayName) {
+        bigAvatarEl.textContent = user.displayName.charAt(0).toUpperCase();
+      } else {
+        bigAvatarEl.textContent = '🌿';
+      }
+
+      if (user.metadata && user.metadata.creationTime) {
+        const d = new Date(user.metadata.creationTime);
+        memberEl.textContent = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      } else {
+        memberEl.textContent = 'Active Member';
+      }
+    } else {
+      guestBanner.style.display = 'flex';
+      syncPill.style.display = 'none';
+      pwdRow.style.display = 'none';
+      logoutBtn.style.display = 'none';
+
+      const localName = localStorage.getItem('moodtrace_user_name') || 'Guest Explorer';
+      nameEl.textContent = localName;
+      emailEl.textContent = 'Local Guest Session (Not Synced)';
+      badgeEl.textContent = '📴 Guest Mode';
+      badgeEl.className = 'profile-badge guest';
+      authBtn.textContent = 'Sign In / Join →';
+      authBtn.className = 'btn btn-primary';
+      syncTitle.textContent = '📴 Local Storage Only';
+
+      bigAvatarEl.textContent = customAvatar || '📴';
+      memberEl.textContent = 'Guest Session';
+    }
+
+    // Sync timestamp
+    const lastSync = localStorage.getItem('moodtrace_last_synced');
+    if (lastSync) {
+      const dt = new Date(lastSync);
+      lastSyncEl.textContent = `Last synced: ${dt.toLocaleTimeString()} on ${dt.toLocaleDateString()}`;
+    } else {
+      lastSyncEl.textContent = user ? 'Not synced yet this session' : 'Sync available after login';
+    }
+
+    // Render Stats
+    renderProfileStats();
+  }
+
+  function renderProfileStats() {
+    const entries = typeof getEntries === 'function' ? getEntries() : [];
+    const journals = typeof getJournalEntries === 'function' ? getJournalEntries() : [];
+
+    // Total
+    document.getElementById('statTotalEntries').textContent = entries.length;
+    document.getElementById('statJournalNotes').textContent = journals.length;
+
+    // Streak
+    if (typeof calculateStreak === 'function') {
+      const streak = calculateStreak();
+      document.getElementById('statStreak').textContent = `${streak}d`;
+    }
+
+    // Top emoji
+    if (entries.length > 0) {
+      const counts = {};
+      entries.forEach(e => { if (e.emoji) counts[e.emoji] = (counts[e.emoji] || 0) + 1; });
+      let topEmoji = '😊';
+      let max = 0;
+      for (const [em, cnt] of Object.entries(counts)) {
+        if (cnt > max) { max = cnt; topEmoji = em; }
+      }
+      document.getElementById('statTopEmoji').textContent = topEmoji;
+    } else {
+      document.getElementById('statTopEmoji').textContent = '—';
+    }
+  }
+
+  function handleAuthButtonClick() {
+    window.location.href = 'login.html';
+  }
+
+  async function handleLogout() {
+    if (!confirm('Are you sure you want to sign out of MoodTrace on this device?')) return;
+    await window.authAPI.signOut();
+    renderProfile();
+  }
+
+  async function handleSyncNow() {
+    const btn = document.getElementById('syncNowBtn');
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    if (!user) {
+      alert('Please sign in or create an account to sync your data to the cloud.');
+      window.location.href = 'login.html';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Syncing...';
+    try {
+      const res = await window.storageAPI.syncWithCloud(user);
+      if (res && res.success) {
+        btn.textContent = '✅ Synced!';
+        renderProfile();
+        setTimeout(() => { btn.disabled = false; btn.textContent = '🔄 Sync Now'; }, 2000);
+      } else {
+        throw new Error(res ? res.reason : 'Sync failed');
+      }
+    } catch(e) {
+      console.error(e);
+      alert('Could not complete cloud sync. Check your internet connection.');
+      btn.disabled = false;
+      btn.textContent = '🔄 Sync Now';
+    }
+  }
+
+  async function handleSendPasswordReset() {
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    if (!user || !user.email) {
+      alert('Password reset requires a signed-in account with an email address.');
+      return;
+    }
+    if (!confirm(`Send password reset email to ${user.email}?`)) return;
+    try {
+      await window.authAPI.sendPasswordReset(user.email);
+      alert(`Password reset link sent to ${user.email}! Please check your inbox.`);
+    } catch(err) {
+      alert(window.authAPI.getFriendlyError(err));
+    }
+  }
+
+  // Edit Name
+  function openEditNameModal() {
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    const curName = user ? (user.displayName || '') : (localStorage.getItem('moodtrace_user_name') || '');
+    document.getElementById('newNameInput').value = curName;
+    document.getElementById('editNameModal').style.display = 'flex';
+  }
+
+  function closeEditNameModal() {
+    document.getElementById('editNameModal').style.display = 'none';
+  }
+
+  async function saveNewName() {
+    const name = document.getElementById('newNameInput').value.trim();
+    if (!name) return;
+    const user = window.authAPI ? window.authAPI.getCurrentUser() : null;
+    if (user) {
+      try {
+        await window.authAPI.updateProfile({ displayName: name });
+      } catch(e) {
+        console.warn('Could not update remote profile:', e);
+      }
+    }
+    localStorage.setItem('moodtrace_user_name', name);
+    closeEditNameModal();
+    renderProfile();
+    if (window.authAPI) window.authAPI.updateNavAuthUI();
+  }
+
+  // Avatar Modal
+  function openAvatarModal() {
+    document.getElementById('avatarModal').style.display = 'flex';
+  }
+  function closeAvatarModal() {
+    document.getElementById('avatarModal').style.display = 'none';
+  }
+  function selectAvatar(emoji) {
+    localStorage.setItem('moodtrace_user_avatar', emoji);
+    closeAvatarModal();
+    renderProfile();
+    const navAv = document.getElementById('navProfileAvatar');
+    if (navAv) navAv.textContent = emoji;
+  }
+
+  // Event listener
+  window.addEventListener('moodtrace-auth-changed', renderProfile);
+  window.addEventListener('moodtrace-synced', renderProfile);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    renderProfile();
+  });
+</script>
+
+</body>
+</html>

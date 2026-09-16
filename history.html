@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MoodTrace – History</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="moodtrace-logo.svg">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -64,18 +65,40 @@
   </div>
 </div>
 
-<nav>
+<nav class="top-nav">
   <div class="nav-inner">
-    <div class="logo">Mood<span>Trace</span></div>
+    <a href="index.html" class="logo"><img src="moodtrace-logo.svg" alt="MoodTrace" class="logo-icon">Mood<span>Trace</span></a>
     <ul class="nav-links">
       <li><a href="index.html"><span class="nav-icon">🏠</span><span class="label">Dashboard</span></a></li>
       <li><a href="add-entry.html"><span class="nav-icon">✏️</span><span class="label">Add Entry</span></a></li>
       <li><a href="history.html" class="active"><span class="nav-icon">📋</span><span class="label">History</span></a></li>
+      <li><a href="journal.html"><span class="nav-icon">📓</span><span class="label">Journal</span></a></li>
       <li><a href="analytics.html"><span class="nav-icon">📊</span><span class="label">Analytics</span></a></li>
+      <li><a href="insights.html"><span class="nav-icon">💡</span><span class="label">Insights</span></a></li>
       <li><a href="monthly.html"><span class="nav-icon">📅</span><span class="label">Summary</span></a></li>
+      <li><a href="settings.html"><span class="nav-icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="profile.html"><span class="nav-icon">👤</span><span class="label">Profile</span></a></li>
     </ul>
-    <button id="themeToggle" onclick="toggleTheme()" style="margin-left:1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;cursor:pointer;font-size:1rem;color:var(--text)">☀️</button>
+    <div style="display:flex;align-items:center;gap:0.6rem">
+      <a href="profile.html" class="nav-profile-pill" id="navProfileBtn" title="Account & Profile">
+        <span class="nav-profile-avatar" id="navProfileAvatar">👤</span>
+        <span class="nav-profile-name" id="navProfileName">Profile</span>
+      </a>
+      <button id="themeToggle" class="nav-theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    </div>
   </div>
+</nav>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+  <ul>
+    <li><a href="index.html"><span class="bn-icon">🏠</span>Home</a></li>
+    <li><a href="add-entry.html"><span class="bn-icon">✏️</span>Add</a></li>
+    <li><a href="history.html" class="active"><span class="bn-icon">📋</span>History</a></li>
+    <li><a href="journal.html"><span class="bn-icon">📓</span>Journal</a></li>
+    <li><a href="analytics.html"><span class="bn-icon">📊</span>Analytics</a></li>
+    <li><a href="profile.html"><span class="bn-icon">👤</span>Profile</a></li>
+  </ul>
 </nav>
 
 <div class="container">
@@ -136,6 +159,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="storage.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 <script src="init-history.js"></script>
 </body>
