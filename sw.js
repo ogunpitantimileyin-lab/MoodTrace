@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moodtrace-v4';
+const CACHE_NAME = 'moodtrace-v5';
 const urlsToCache = [
   '/',
   '/index.html',
