@@ -208,11 +208,15 @@
       window.currentUser = user || null;
       if (user) {
         localStorage.removeItem('moodtrace_guest_mode');
-        // Run cloud sync in the background
-        if (window.storageAPI && typeof window.storageAPI.syncWithCloud === 'function') {
-          window.storageAPI.syncWithCloud(user).catch(err => {
-            console.warn('Initial cloud sync notice:', err);
-          });
+        if (window.storageAPI) {
+          if (typeof window.storageAPI.initRealtimeSync === 'function') {
+            window.storageAPI.initRealtimeSync(user);
+          }
+          if (typeof window.storageAPI.syncWithCloud === 'function') {
+            await window.storageAPI.syncWithCloud(user).catch(err => {
+              console.warn('Initial cloud sync notice:', err);
+            });
+          }
         }
       }
       api.updateNavAuthUI();

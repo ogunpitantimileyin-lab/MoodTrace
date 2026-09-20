@@ -73,7 +73,7 @@
       return Promise.resolve(list);
     },
 
-    addEntry(entry) {
+    async addEntry(entry) {
       entry.id = entry.id || Date.now();
       entry.createdAt = entry.createdAt || new Date().toISOString();
       entry.updatedAt = entry.updatedAt || entry.createdAt;
@@ -86,15 +86,19 @@
       localStorage.setItem('moodtrace_entries', JSON.stringify(next));
 
       if (window.currentUser && window.db) {
-        window.db.collection('users').doc(window.currentUser.uid)
-          .collection('entries').doc(String(entry.id))
-          .set(entry)
-          .catch(err => console.warn('Firestore entry add error:', err));
+        try {
+          await window.db.collection('users').doc(window.currentUser.uid)
+            .collection('entries').doc(String(entry.id))
+            .set(entry);
+          localStorage.setItem('moodtrace_last_synced', new Date().toISOString());
+        } catch (err) {
+          console.error('Firestore entry save error (check Firestore rules):', err);
+        }
       }
       return entry;
     },
 
-    updateEntry(id, updates) {
+    async updateEntry(id, updates) {
       const entries = api.getEntries();
       const existing = entries.find(e => String(e.id) === String(id));
       if (!existing) return null;
@@ -110,15 +114,19 @@
       localStorage.setItem('moodtrace_entries', JSON.stringify(next));
 
       if (window.currentUser && window.db) {
-        window.db.collection('users').doc(window.currentUser.uid)
-          .collection('entries').doc(String(id))
-          .set(updated)
-          .catch(err => console.warn('Firestore entry update error:', err));
+        try {
+          await window.db.collection('users').doc(window.currentUser.uid)
+            .collection('entries').doc(String(id))
+            .set(updated);
+          localStorage.setItem('moodtrace_last_synced', new Date().toISOString());
+        } catch (err) {
+          console.error('Firestore entry update error:', err);
+        }
       }
       return updated;
     },
 
-    deleteEntry(id) {
+    async deleteEntry(id) {
       const entries = api.getEntries();
       const entry = entries.find(e => String(e.id) === String(id));
       if (!entry) return null;
@@ -128,10 +136,14 @@
       localStorage.setItem('moodtrace_entries', JSON.stringify(next));
 
       if (window.currentUser && window.db) {
-        window.db.collection('users').doc(window.currentUser.uid)
-          .collection('entries').doc(String(id))
-          .delete()
-          .catch(err => console.warn('Firestore entry delete error:', err));
+        try {
+          await window.db.collection('users').doc(window.currentUser.uid)
+            .collection('entries').doc(String(id))
+            .delete();
+          localStorage.setItem('moodtrace_last_synced', new Date().toISOString());
+        } catch (err) {
+          console.error('Firestore entry delete error:', err);
+        }
       }
       return entry;
     },
@@ -278,6 +290,49 @@
       } catch (err) {
         console.error('Cloud sync error:', err);
         return { success: false, error: err };
+      }
+    },
+
+    // Realtime Listener across devices
+    initRealtimeSync(user) {
+      if (!user || !window.db) return;
+      if (api._unsubscribeRealtime) {
+        try { api._unsubscribeRealtime(); } catch(e){}
+      }
+      try {
+        api._unsubscribeRealtime = window.db.collection('users').doc(user.uid).collection('entries')
+          .onSnapshot(snapshot => {
+            const cloudEntries = [];
+            snapshot.forEach(doc => {
+              const d = doc.data();
+              if (d && d.id) cloudEntries.push(d);
+            });
+
+            // Merge with local entries
+            const local = getLocalEntries();
+            const mergedMap = new Map();
+            cloudEntries.forEach(e => mergedMap.set(String(e.id), e));
+            local.forEach(e => {
+              if (e && e.id && !mergedMap.has(String(e.id))) {
+                mergedMap.set(String(e.id), e);
+              }
+            });
+
+            const merged = Array.from(mergedMap.values()).sort((a, b) => {
+              return new Date(b.createdAt || b.datetime || 0) - new Date(a.createdAt || a.datetime || 0);
+            });
+
+            window.firestoreEntriesCache = merged;
+            localStorage.setItem('moodtrace_entries', JSON.stringify(merged));
+            localStorage.setItem('moodtrace_last_synced', new Date().toISOString());
+
+            window.dispatchEvent(new CustomEvent('moodtrace-synced', { detail: { count: merged.length } }));
+            if (typeof triggerAppRerender === 'function') triggerAppRerender();
+          }, err => {
+            console.warn('Realtime entries listener note:', err);
+          });
+      } catch(e) {
+        console.warn('Could not attach realtime listener:', e);
       }
     }
   };

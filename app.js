@@ -142,15 +142,9 @@ function saveEntries(entries) {
 let deleteUndoStack = [];
 let deleteRedoStack = [];
 
-function addEntry(entry) {
+async function addEntry(entry) {
   if (window.storageAPI && typeof window.storageAPI.addEntry === 'function') {
-    const res = window.storageAPI.addEntry(entry);
-    if (res && typeof res.then === 'function') {
-      return res.then(e => {
-        renderDashboard();
-        return e;
-      });
-    }
+    const res = await window.storageAPI.addEntry(entry);
     renderDashboard();
     return res;
   }
@@ -160,12 +154,13 @@ function addEntry(entry) {
   entry.history = [];
   
   if (window.currentUser && window.db) {
-    window.db.collection('users').doc(window.currentUser.uid).collection('entries').doc(String(entry.id)).set(entry);
+    await window.db.collection('users').doc(window.currentUser.uid).collection('entries').doc(String(entry.id)).set(entry).catch(e=>console.warn(e));
   } else {
     const entries = getEntries();
     entries.unshift(entry);
     saveEntries(entries);
   }
+  return entry;
 }
 
 function updateEntry(id, updates) {
@@ -476,6 +471,7 @@ function saveCustomCopingAction() {
   if (!label) { alert('Please enter an action name.'); return; }
   addCustomCopingAction(label);
   renderCustomCopingList();
+  if (typeof renderCustomList === 'function') renderCustomList();
   closeCustomCopingModal();
 }
 
@@ -818,7 +814,7 @@ function openReminderEditor() {
   const modal = document.getElementById('reminderModal');
   if (!modal) return;
   document.getElementById('reminderTime').value = '20:00';
-  document.querySelectorAll('.day-checkbox').forEach(c => c.checked = false);
+  document.querySelectorAll('.day-checkbox').forEach(c => c.checked = true);
   modal.style.display = 'flex';
 }
 
@@ -851,8 +847,8 @@ function checkAndTriggerReminders() {
   const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   
   reminders.forEach(r => {
-    if (r.days.includes(dayName) && r.time === timeStr) {
-      const todayEntries = getTodayEntries();
+    if (r.days && r.days.includes(dayName) && r.time === timeStr) {
+      const todayEntries = typeof getTodayEntries === 'function' ? getTodayEntries() : [];
       if (!todayEntries.length) {
         new Notification('MoodTrace 🌙', {
           body: "Time to log your mood! How are you feeling?",
@@ -864,6 +860,33 @@ function checkAndTriggerReminders() {
     }
   });
 }
+
+function initReminders() {
+  const toggle = document.getElementById('reminderToggle');
+  if (!toggle) return;
+  const reminders = getReminders();
+  toggle.checked = reminders.some(r => r.enabled);
+  toggle.onchange = (e) => {
+    if (e.target.checked) {
+      if (!reminders.length) {
+        addReminder('20:00', ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], true);
+        if (typeof renderReminderManager === 'function') renderReminderManager();
+      } else {
+        const currentReminders = getReminders();
+        currentReminders.forEach(r => r.enabled = true);
+        saveReminders(currentReminders);
+      }
+      requestNotificationPermission();
+    } else {
+      const currentReminders = getReminders();
+      currentReminders.forEach(r => r.enabled = false);
+      saveReminders(currentReminders);
+    }
+  };
+}
+
+// Start interval for checking active reminders
+setInterval(checkAndTriggerReminders, 60000);
 
 // ─── ACCESSIBILITY ──────────────────────────────────────
 
@@ -1070,15 +1093,20 @@ function selectHelped(el) {
 async function handleSubmit() {
   const intensity    = parseInt(document.getElementById('slider')?.value || 7);
   const datetime     = document.getElementById('entryDatetime')?.value;
-  const description  = document.getElementById('description')?.value?.trim();
+  let description    = document.getElementById('description')?.value?.trim() || '';
   const copingNotes  = document.getElementById('copingNotes')?.value?.trim() || '';
   const sleepHours   = parseFloat(document.getElementById('sleepHours')?.value || 7);
   const exerciseMinutes = parseInt(document.getElementById('exerciseMinutes')?.value || 0);
   const workload     = parseInt(document.getElementById('workload')?.value || 5);
   const stress       = parseInt(document.getElementById('stressLevel')?.value || 5);
 
-  if (!datetime)    { alert('Please pick a date and time.'); return; }
-  if (!description) { alert('Please write something about how you feel.'); return; }
+  // If main description is blank but extra details was filled, use extra details as entry description
+  if (!description && copingNotes) {
+    description = copingNotes;
+  }
+
+  if (!datetime) { alert('Please pick a date and time.'); return; }
+  if (!description && !copingNotes) { alert('Please write something about how you feel.'); return; }
 
   if (intensity <= 4 && selectedCoping.size === 0) {
     const suggestion = getCopingSuggestion();
@@ -1116,10 +1144,12 @@ async function handleSubmit() {
     }
   }
 
-  addEntry(entry);
+  submitBtn.innerHTML = '⏳ Saving...';
+  submitBtn.disabled = true;
+  await addEntry(entry);
 
   showToast('✅ Entry saved!');
-  setTimeout(() => { window.location.href = 'index.html'; }, 500);
+  setTimeout(() => { window.location.href = 'index.html'; }, 400);
 }
 
 function getCopingSuggestion() {

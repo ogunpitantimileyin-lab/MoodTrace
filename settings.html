@@ -399,5 +399,83 @@
     checkPushStatus();
   });
 </script>
+<!-- Reminder Modal -->
+<div id="reminderModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:440px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Add Daily Reminder</h3>
+      <button onclick="closeReminderModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    
+    <label class="form-label" style="margin-bottom:0.35rem">Reminder Time</label>
+    <input type="time" id="reminderTime" class="form-input" value="20:00" style="margin-bottom:1.25rem;width:100%">
+    
+    <label class="form-label" style="margin-bottom:0.5rem">Select Days</label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:0.5rem;margin-bottom:1.5rem">
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Monday" checked> Mon
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Tuesday" checked> Tue
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Wednesday" checked> Wed
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Thursday" checked> Thu
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Friday" checked> Fri
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Saturday" checked> Sat
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;background:var(--bg3);padding:0.5rem 0.75rem;border-radius:8px;cursor:pointer;border:1px solid var(--border)">
+        <input type="checkbox" class="day-checkbox" value="Sunday" checked> Sun
+      </label>
+    </div>
+
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveReminder()" style="flex:1">Save Reminder</button>
+      <button class="btn btn-ghost" onclick="closeReminderModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Category Modal -->
+<div id="customCategoryModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Add Category</h3>
+      <button onclick="closeCustomCategoryModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <label class="form-label" style="margin-bottom:0.35rem">Category name</label>
+    <input id="customCatLabel" class="form-input" placeholder="e.g. Family, Gym, Travel" style="margin-bottom:0.75rem;width:100%">
+    <label class="form-label" style="margin-bottom:0.35rem">Emoji</label>
+    <input id="customCatEmojiInput" class="form-input" placeholder="Type any emoji, e.g. 🧘‍♀️ or ✨" style="margin-bottom:1rem;font-size:1.1rem;width:100%">
+    <div id="customCatEmoji" style="display:none">📌</div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveCustomCategory()" style="flex:1">Save Category</button>
+      <button class="btn btn-ghost" onclick="closeCustomCategoryModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Coping Action Modal -->
+<div id="customCopingModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:420px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700">Add Coping Action</h3>
+      <button onclick="closeCustomCopingModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <label class="form-label" style="margin-bottom:0.35rem">Action name</label>
+    <input id="customCopingLabel" class="form-input" placeholder="e.g. 🚴 Cycling, 🎨 Painting" style="margin-bottom:1rem;width:100%">
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" onclick="saveCustomCopingAction()" style="flex:1">Save Action</button>
+      <button class="btn btn-ghost" onclick="closeCustomCopingModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
